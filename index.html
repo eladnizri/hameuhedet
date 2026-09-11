@@ -676,6 +676,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
   <div class="sheet-box">
     <div class="sheet-top">
       <h2>הוספת תוכן לאתר</h2>
+      <button class="chip" id="diagBtn" style="font-size:12.5px;padding:7px 13px">בדיקת חיבור</button>
       <button class="sheet-x" id="sheetX" aria-label="סגירה">✕</button>
     </div>
 
@@ -766,6 +767,17 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
         </div>
         <button class="btn btn-main btn-wide" id="pSend">הוספת הפרק</button>
         <div id="podNote"></div>
+      </div>
+
+      <!-- תוצאות בדיקת החיבור -->
+      <div class="form-pane" id="form-diag">
+        <p style="margin:0 0 16px;color:var(--txt-dim);line-height:1.6;font-size:14px">
+          הבדיקה מנסה להעלות תמונת בדיקה זעירה ולקרוא אותה בחזרה,
+          ומדווחת בדיוק איפה זה נתקע.
+        </p>
+        <button class="btn btn-main btn-wide" id="diagRun">הרצת הבדיקה</button>
+        <div id="diagOut"></div>
+        <button class="btn btn-ghost btn-wide" id="diagCopy" hidden>העתקת התוצאה</button>
       </div>
 
     </div>
@@ -1602,6 +1614,115 @@ if (CL.on){
     } catch (err){
       setNote($('#podNote'), err.message, 'bad');
     } finally { btn.disabled = false; }
+  });
+}
+
+/* ===================== בדיקת חיבור =====================
+   כשמשהו לא עובד, זה אומר בדיוק מה נכשל במקום להשאיר לנחש. */
+const diagLines = [];
+
+function diag(title, ok, detail){
+  diagLines.push(`${ok === true ? '✓' : ok === false ? '✕' : '•'} ${title} — ${detail}`);
+  $('#diagOut').innerHTML = diagLines
+    .map(l => `<div class="note ${l[0] === '✓' ? 'ok' : l[0] === '✕' ? 'bad' : ''}">${esc(l)}</div>`)
+    .join('');
+}
+
+async function runDiag(){
+  diagLines.length = 0;
+  $('#diagOut').innerHTML = '';
+  $('#diagCopy').hidden = true;
+  const btn = $('#diagRun');
+  btn.disabled = true;
+
+  const c = TEAM.cloudinary;
+  diag('הגדרות', true, `cloud=${c.cloudName} preset=${c.uploadPreset}`);
+
+  /* 1. קריאת רשימה — כאן נופל הרוב */
+  let listWorks = false;
+  try {
+    const r = await fetch(CL.res('image', `list/gallery.json?_=${Date.now()}`));
+    if (r.ok){
+      const d = await r.json().catch(() => ({}));
+      listWorks = true;
+      diag('קריאת רשימת התמונות', true, `תקין. נמצאו ${(d.resources || []).length} תמונות בתווית gallery`);
+    } else if (r.status === 401 || r.status === 403){
+      diag('קריאת רשימת התמונות', false,
+        `חסום (${r.status}). ב-Cloudinary: Settings ← Security ← להוריד את הסימון מ-Resource list`);
+    } else if (r.status === 404){
+      diag('קריאת רשימת התמונות', false,
+        '404 — או שאין עדיין תמונות בתווית gallery, או שהרשימה הציבורית כבויה בחשבון');
+    } else {
+      diag('קריאת רשימת התמונות', false, `שגיאה ${r.status}`);
+    }
+  } catch (err){
+    diag('קריאת רשימת התמונות', false, `הדפדפן חסם את הבקשה (${err.message})`);
+  }
+
+  /* 2. העלאה אמיתית של תמונה זעירה */
+  let uploadedId = '';
+  try {
+    const cv = document.createElement('canvas');
+    cv.width = cv.height = 8;
+    const ctx = cv.getContext('2d');
+    ctx.fillStyle = '#e6b647';
+    ctx.fillRect(0, 0, 8, 8);
+    const blob = await new Promise(r => cv.toBlob(r, 'image/png'));
+    const res  = await CL.upload(new File([blob], 'diag.png', { type:'image/png' }),
+                                 { tags:['diagnostic'] });
+    uploadedId = res.public_id;
+    diag('העלאת תמונת בדיקה', true, `הצליחה. מזהה: ${res.public_id}`);
+  } catch (err){
+    diag('העלאת תמונת בדיקה', false, err.message);
+  }
+
+  /* 3. האם מה שהרגע עלה נקרא בחזרה */
+  if (uploadedId){
+    await new Promise(r => setTimeout(r, 2500));
+    try {
+      const r = await fetch(CL.res('image', `list/diagnostic.json?_=${Date.now()}`));
+      if (!r.ok){
+        diag('קריאה חוזרת של מה שעלה', false,
+          `הרשימה מחזירה ${r.status}. התמונות נשמרות אצל Cloudinary אבל האתר לא יכול לראות אותן`);
+      } else {
+        const d = await r.json().catch(() => ({}));
+        const found = (d.resources || []).some(x => x.public_id === uploadedId);
+        diag('קריאה חוזרת של מה שעלה', found,
+          found ? 'התמונה חזרה ברשימה. המנגנון תקין מקצה לקצה'
+                : 'הרשימה נקראת אבל התמונה החדשה עוד לא בה — ייתכן מטמון, נסו שוב בעוד דקה');
+      }
+    } catch (err){
+      diag('קריאה חוזרת של מה שעלה', false, err.message);
+    }
+  }
+
+  /* 4. אחסון הטקסט של חדשות ופרקים */
+  try {
+    const r = await fetch(CL.res('raw', `list/news.json?_=${Date.now()}`));
+    diag('אחסון חדשות ופרקים', r.ok,
+      r.ok ? 'תקין' : `הרשימה מחזירה ${r.status} — חדשות ופרקים לא יישמרו בין רענונים`);
+  } catch (err){
+    diag('אחסון חדשות ופרקים', false, err.message);
+  }
+
+  btn.disabled = false;
+  $('#diagCopy').hidden = false;
+}
+
+if (CL.on){
+  $('#diagBtn').addEventListener('click', () => {
+    $$('#sheetTabs .chip').forEach(c => c.classList.remove('on'));
+    $$('.form-pane').forEach(pn => pn.classList.toggle('on', pn.id === 'form-diag'));
+  });
+  $('#diagRun').addEventListener('click', runDiag);
+  $('#diagCopy').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(diagLines.join('\n'));
+      $('#diagCopy').textContent = 'הועתק ✓';
+      setTimeout(() => $('#diagCopy').textContent = 'העתקת התוצאה', 1800);
+    } catch {
+      $('#diagCopy').textContent = 'ההעתקה נחסמה — צלמו מסך';
+    }
   });
 }
 
