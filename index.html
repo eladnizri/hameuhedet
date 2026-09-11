@@ -293,15 +293,6 @@ tbody tr.us td:first-child{box-shadow:inset 3px 0 0 var(--team-1)}
   position:absolute;inset-inline:0;bottom:0;padding:22px 14px 12px;font-size:13px;font-weight:700;
   background:linear-gradient(transparent,rgba(0,0,0,.85));
 }
-.upload-hint{
-  margin:22px 0 0;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;
-  font-size:13.5px;color:var(--txt-dim);
-}
-.upload-hint a{
-  font-weight:800;color:var(--team-1);
-  border-bottom:1px dashed color-mix(in srgb,var(--team-1) 55%,transparent);
-}
-.upload-hint a:hover{color:var(--txt);border-color:var(--txt)}
 .ig{
   margin-top:36px;display:grid;grid-template-columns:1fr;gap:20px;
   background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);padding:2px;border-radius:22px;
@@ -313,6 +304,108 @@ tbody tr.us td:first-child{box-shadow:inset 3px 0 0 var(--team-1)}
   background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);color:#fff;
 }
 .ig-embeds{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px;margin-top:28px}
+
+/* ===== פאנל הוספת תוכן ===== */
+.fab{
+  position:fixed;z-index:80;inset-block-end:22px;inset-inline-end:22px;
+  display:flex;align-items:center;gap:9px;padding:14px 22px;border:0;border-radius:999px;
+  background:var(--team-1);color:var(--ink);font-weight:900;font-size:15px;cursor:pointer;
+  box-shadow:0 12px 34px rgba(0,0,0,.55);transition:.2s;
+}
+.fab:hover{transform:translateY(-3px);box-shadow:0 16px 40px color-mix(in srgb,var(--team-1) 40%,transparent)}
+.fab svg{flex:none}
+
+.sheet{
+  position:fixed;inset:0;z-index:90;display:none;
+  background:rgba(5,3,3,.82);backdrop-filter:blur(6px);
+  padding:20px;overflow-y:auto;
+}
+.sheet.on{display:grid;place-items:start center}
+.sheet-box{
+  width:min(560px,100%);margin-block:auto;background:var(--bg-2);
+  border:1px solid var(--line);border-radius:22px;box-shadow:var(--shadow);overflow:hidden;
+}
+.sheet-top{
+  display:flex;align-items:center;gap:14px;padding:20px 22px;border-bottom:1px solid var(--line);
+}
+.sheet-top h2{margin:0;font-size:20px;font-weight:900;flex:1}
+.sheet-x{
+  width:38px;height:38px;border-radius:50%;border:1px solid var(--line);flex:none;
+  background:rgba(255,255,255,.05);color:var(--txt);font-size:19px;cursor:pointer;
+}
+.sheet-x:hover{background:rgba(255,255,255,.12)}
+.sheet-tabs{display:flex;gap:6px;padding:16px 22px 0;flex-wrap:wrap}
+.sheet-tabs .chip{font-size:13px;padding:8px 14px}
+.sheet-body{padding:20px 22px 24px}
+.form-pane{display:none}
+.form-pane.on{display:block;animation:fade .25s}
+
+.field{margin-bottom:15px}
+.field label{display:block;margin-bottom:7px;font-size:13.5px;font-weight:700;color:var(--txt-dim)}
+.field input,.field textarea,.field select{
+  width:100%;padding:12px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--card);color:var(--txt);font-family:inherit;font-size:15px;
+}
+.field input:focus,.field textarea:focus,.field select:focus{
+  outline:none;border-color:color-mix(in srgb,var(--team-1) 60%,transparent);
+}
+.field textarea{min-height:110px;resize:vertical;line-height:1.6}
+.field .hint{margin:6px 0 0;font-size:12.5px;color:var(--txt-dim)}
+.row2{display:grid;grid-template-columns:110px 1fr;gap:12px}
+
+.drop{
+  border:2px dashed var(--line);border-radius:16px;padding:34px 20px;text-align:center;
+  cursor:pointer;transition:.2s;background:rgba(255,255,255,.02);
+}
+.drop:hover,.drop.over{
+  border-color:var(--team-1);background:color-mix(in srgb,var(--team-1) 8%,transparent);
+}
+.drop b{display:block;font-size:16px;font-weight:800;margin-bottom:6px}
+.drop span{font-size:13px;color:var(--txt-dim)}
+
+.queue{display:flex;flex-wrap:wrap;gap:10px;margin-top:15px}
+.queue figure{
+  position:relative;width:76px;height:76px;margin:0;border-radius:12px;overflow:hidden;
+  border:1px solid var(--line);
+}
+.queue img{width:100%;height:100%;object-fit:cover}
+.queue .state{
+  position:absolute;inset:0;display:grid;place-items:center;font-size:20px;
+  background:rgba(0,0,0,.6);
+}
+.queue .state.ok{background:color-mix(in srgb,var(--team-1) 70%,transparent);color:var(--ink)}
+.queue .state.bad{background:rgba(190,30,45,.82);color:#fff}
+@keyframes spin{to{transform:rotate(360deg)}}
+.spin{
+  width:18px;height:18px;border-radius:50%;border:2.5px solid rgba(255,255,255,.25);
+  border-top-color:var(--team-1);animation:spin .7s linear infinite;
+}
+
+.note{
+  margin-top:14px;padding:12px 14px;border-radius:12px;font-size:13.5px;line-height:1.6;
+  border:1px solid var(--line);background:rgba(255,255,255,.03);color:var(--txt-dim);
+}
+.note.ok{border-color:color-mix(in srgb,var(--team-1) 45%,transparent);color:var(--team-1)}
+.note.bad{border-color:rgba(207,32,51,.5);color:#ff9aa4}
+
+.btn-wide{width:100%;justify-content:center;margin-top:4px}
+.btn[disabled]{opacity:.55;pointer-events:none}
+
+.player .shoot{
+  position:absolute;z-index:2;inset-block-end:8px;inset-inline-end:8px;
+  width:34px;height:34px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(10,8,8,.72);color:var(--txt);display:grid;place-items:center;
+  cursor:pointer;opacity:0;transition:.2s;
+}
+.player:hover .shoot,.player .shoot:focus{opacity:1}
+.player .shoot:hover{background:var(--team-1);color:var(--ink)}
+@media(hover:none){.player .shoot{opacity:.85}}
+
+@media(max-width:640px){
+  .fab{inset-block-end:16px;inset-inline-end:16px;padding:12px 18px;font-size:14px}
+  .sheet{padding:0}
+  .sheet-box{border-radius:18px 18px 0 0;min-height:100%}
+}
 
 /* ===== לייטבוקס ===== */
 .lightbox{
@@ -542,7 +635,6 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
         <p>התמונות הכי טובות מהעונה. לחיצה על תמונה פותחת אותה בגדול.</p>
       </div>
       <div class="gallery" id="galleryGrid"></div>
-      <p class="upload-hint" id="uploadHint"></p>
 
       <div class="ig" id="follow">
         <div class="ig-inner">
@@ -573,6 +665,113 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
   </div>
 </footer>
 
+<!-- ===== פאנל הוספת תוכן ===== -->
+<button class="fab" id="fab" hidden>
+  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+       stroke-width="3" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+  הוספת תוכן
+</button>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-box">
+    <div class="sheet-top">
+      <h2>הוספת תוכן לאתר</h2>
+      <button class="sheet-x" id="sheetX" aria-label="סגירה">✕</button>
+    </div>
+
+    <div class="sheet-tabs" id="sheetTabs">
+      <button class="chip on" data-form="photos">תמונות לגלריה</button>
+      <button class="chip" data-form="player">תמונת שחקן</button>
+      <button class="chip" data-form="news">עדכון חדשות</button>
+      <button class="chip" data-form="pod">פרק פודקאסט</button>
+    </div>
+
+    <div class="sheet-body">
+
+      <!-- תמונות לגלריה -->
+      <div class="form-pane on" id="form-photos">
+        <div class="drop" id="drop">
+          <b>גררו לכאן תמונות</b>
+          <span>או לחצו כדי לבחור מהמכשיר · אפשר כמה בבת אחת</span>
+        </div>
+        <input type="file" id="dropInput" accept="image/*" multiple hidden>
+        <div class="queue" id="queue"></div>
+        <div class="field" style="margin-top:15px">
+          <label for="capInput">כותרת לתמונות (אופציונלי)</label>
+          <input id="capInput" type="text" placeholder="למשל: הניצחון בדרבי" maxlength="90">
+        </div>
+        <div id="photoNote"></div>
+      </div>
+
+      <!-- תמונת שחקן -->
+      <div class="form-pane" id="form-player">
+        <div class="field">
+          <label for="playerPick">בחרו שחקן</label>
+          <select id="playerPick"></select>
+        </div>
+        <div class="drop" id="dropP">
+          <b>גררו לכאן תמונה</b>
+          <span>או לחצו כדי לבחור · התמונה תחליף את עיגול ראשי התיבות</span>
+        </div>
+        <input type="file" id="dropPInput" accept="image/*" hidden>
+        <div class="queue" id="queueP"></div>
+        <div id="playerNote"></div>
+      </div>
+
+      <!-- חדשות -->
+      <div class="form-pane" id="form-news">
+        <div class="row2">
+          <div class="field">
+            <label for="nTag">תווית</label>
+            <input id="nTag" type="text" value="עדכון" maxlength="14">
+          </div>
+          <div class="field">
+            <label for="nTitle">כותרת</label>
+            <input id="nTitle" type="text" placeholder="מה קרה?" maxlength="90">
+          </div>
+        </div>
+        <div class="field">
+          <label for="nText">גוף העדכון</label>
+          <textarea id="nText" placeholder="כמה משפטים על מה שקרה." maxlength="900"></textarea>
+        </div>
+        <div class="field">
+          <label for="nImg">תמונה (אופציונלי)</label>
+          <input id="nImg" type="file" accept="image/*">
+        </div>
+        <button class="btn btn-main btn-wide" id="nSend">פרסום העדכון</button>
+        <div id="newsNote"></div>
+      </div>
+
+      <!-- פודקאסט -->
+      <div class="form-pane" id="form-pod">
+        <div class="row2">
+          <div class="field">
+            <label for="pNum">מס׳ פרק</label>
+            <input id="pNum" type="number" min="1" placeholder="11">
+          </div>
+          <div class="field">
+            <label for="pTitle">כותרת הפרק</label>
+            <input id="pTitle" type="text" placeholder="מי מתארח הפעם?" maxlength="90">
+          </div>
+        </div>
+        <div class="field">
+          <label for="pDesc">תיאור</label>
+          <textarea id="pDesc" placeholder="על מה דיברתם בפרק." maxlength="900"></textarea>
+        </div>
+        <div class="field">
+          <label for="pEmbed">קישור הטמעה (אופציונלי)</label>
+          <input id="pEmbed" type="url" placeholder="https://open.spotify.com/embed/episode/...">
+          <p class="hint">בספוטיפיי: שיתוף ← Embed ← מעתיקים את כתובת ה-src.
+             ביוטיוב: youtube.com/embed/VIDEO_ID</p>
+        </div>
+        <button class="btn btn-main btn-wide" id="pSend">הוספת הפרק</button>
+        <div id="podNote"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
 <div class="lightbox" id="lightbox">
   <button class="x" aria-label="סגירה">✕</button>
   <img alt="">
@@ -594,13 +793,18 @@ const TEAM = {
   youtube:   '',                                               // ערוץ יוטיוב (אופציונלי)
   logo:      '',                                               // 'images/logo.png' — הסמל המקורי
 
-  /* לאן מוביל כפתור "העלאת תמונות". הקישור נפתח על תיקיית התמונות
-     ב-GitHub, ומשם מעלים דרך Add file ← Upload files.
-     branch חייב להיות הענף שממנו האתר מתפרסם בפועל — אחרת התמונות
-     יעלו לענף אחר ולא יופיעו באתר החי. */
-  upload:    { repo:'eladnizri/hameuhedet',
-               branch:'main',
-               dir:'images' },
+  /* ==== העלאת תוכן מתוך האתר ====
+     Cloudinary הוא שירות אחסון התמונות. שני הערכים האלה מגיעים
+     מהדשבורד: Cloud name, ושם ה-upload preset שהוגדר כ-Unsigned.
+     אם משאירים ריק — כפתור ההוספה פשוט לא מופיע והאתר עובד כרגיל. */
+  cloudinary:{ cloudName:'mrobhtey', uploadPreset:'w1u89zju' },
+
+  /* ==== מי רשאי להוסיף תוכן ====
+     ריק = כל מי שנכנס לאתר יכול להוסיף, בלי סיסמה.
+     מילוי סיסמה כאן נועל מיד את פאנל ההוספה לכל מי שלא יודע אותה,
+     והיא נשמרת בדפדפן שלו כדי שלא יצטרך להקליד בכל פעם.
+     זהו המתג היחיד שצריך לגעת בו אם מישהו יתחיל להשתולל.        */
+  editCode:  '',
   colors:    { main:'#e6b647', second:'#cf2033' }              // זהב ואדום, לפי הסמל
 };
 
@@ -698,13 +902,12 @@ const PODCASTS = [];
 
 /* ---- גלריה ----
 
-   הדרך הקלה, בלי לגעת בקוד:
-   לוחצים על "העלאת תמונות" שבתחתית אזור הגלריה באתר, גוררים לשם את
-   הקבצים בשמות 1.jpg, 2.jpg, 3.jpg ... והם מופיעים באתר לבד.
-   האתר בודק לבד אילו מהמספרים קיימים ומציג רק אותם.
-   נתמכים גם png,‏ jpeg ו-webp.
+   הדרך הרגילה להוסיף תמונות היא הכפתור "הוספת תוכן" שבאתר עצמו —
+   גוררים לשם תמונות והן עולות לענן ומופיעות בגלריה מיד.
 
-   GALLERY_SLOTS = עד כמה מספרים לבדוק. להעלאת יותר תמונות מגדילים.   */
+   מה שלמטה נשאר לתמונות שיושבות בתיקיית images שבריפו:
+   קבצים בשמות 1.jpg, 2.jpg, 3.jpg ... מזוהים לבד.
+   GALLERY_SLOTS קובע עד איזה מספר לבדוק.                              */
 const GALLERY_SLOTS = 24;
 
 /* כותרות לתמונות, לפי מספר הקובץ. אופציונלי —
@@ -733,15 +936,92 @@ const $  = (s, r=document) => r.querySelector(s);
 const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 
-/* --- זהות הקבוצה --- */
+/* ===================== Cloudinary =====================
+   שכבה דקה מול שירות התמונות: העלאה, קריאת רשימה לפי תווית,
+   ובניית כתובות. כשאין הגדרות — הכל פשוט כבוי.            */
+const CL = {
+  get on(){
+    const c = TEAM.cloudinary;
+    return !!(c && c.cloudName && c.uploadPreset);
+  },
+  res(type, path){
+    return `https://res.cloudinary.com/${TEAM.cloudinary.cloudName}/${type}/${path}`;
+  },
+
+  async upload(file, { tags = [], publicId, context, type = 'image' } = {}){
+    const fd = new FormData();
+    fd.append('file', file);
+    fd.append('upload_preset', TEAM.cloudinary.uploadPreset);
+    if (tags.length) fd.append('tags', tags.join(','));
+    if (publicId)    fd.append('public_id', publicId);
+    if (context){
+      fd.append('context', Object.entries(context)
+        .filter(([, v]) => v)
+        .map(([k, v]) => `${k}=${String(v).replace(/[|=]/g, ' ')}`).join('|'));
+    }
+    const r = await fetch(`https://api.cloudinary.com/v1_1/${TEAM.cloudinary.cloudName}/${type}/upload`,
+      { method:'POST', body: fd });
+    const data = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(data?.error?.message || `ההעלאה נכשלה (${r.status})`);
+    return data;
+  },
+
+  /* הרשימה הציבורית נשמרת ב-CDN, ולכן מוסיפים פרמטר שובר-מטמון */
+  async list(tag, type = 'image'){
+    if (!this.on) return [];
+    try {
+      const r = await fetch(this.res(type, `list/${tag}.json?_=${Date.now()}`));
+      if (!r.ok) return [];
+      const data = await r.json();
+      return (data.resources || [])
+        .sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
+    } catch { return []; }
+  },
+
+  img(r, w = 1400){
+    return this.res('image', `upload/f_auto,q_auto,w_${w}/v${r.version}/${r.public_id}.${r.format}`);
+  },
+  raw(r){
+    /* בקובץ raw הסיומת היא חלק מהכתובת, אבל לא תמיד חלק מה-public_id */
+    const ext = r.format ? `.${r.format}` : '';
+    const id  = ext && !r.public_id.endsWith(ext) ? r.public_id + ext : r.public_id;
+    return this.res('raw', `upload/v${r.version}/${id}`);
+  },
+  ctx(r, key){
+    const c = r.context;
+    return (c?.custom?.[key]) ?? (c?.[key]) ?? '';
+  }
+};
+
+/* דחיסה לפני העלאה — תמונה מהטלפון יכולה לשקול 5 מגה בלי סיבה */
+async function shrink(file, max = 1600, quality = 0.85){
+  if (!file.type.startsWith('image/')) return file;
+  try {
+    const bmp = await createImageBitmap(file, { imageOrientation:'from-image' });
+    const scale = Math.min(1, max / Math.max(bmp.width, bmp.height));
+    if (scale === 1 && file.size < 900_000) return file;
+
+    const cv = document.createElement('canvas');
+    cv.width  = Math.round(bmp.width  * scale);
+    cv.height = Math.round(bmp.height * scale);
+    cv.getContext('2d').drawImage(bmp, 0, 0, cv.width, cv.height);
+    bmp.close?.();
+
+    const blob = await new Promise(res => cv.toBlob(res, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file;
+    return new File([blob], file.name.replace(/\.[^.]+$/, '') + '.jpg', { type:'image/jpeg' });
+  } catch { return file; }
+}
+
+/* ===================== זהות הקבוצה ===================== */
 document.documentElement.style.setProperty('--team-1', TEAM.colors.main);
 document.documentElement.style.setProperty('--team-2', TEAM.colors.second);
 $$('[data-team-name]').forEach(el => el.textContent = TEAM.name);
 $('[data-team-tagline]').textContent = TEAM.tagline;
 document.title = TEAM.name + ' — קבוצת הכדורגל השכונתית';
 $('#igLink').href = TEAM.instagram;
+$('#year').textContent = new Date().getFullYear();
 
-/* אם הוגדר קובץ לוגו — הוא מחליף את סמל ה-SVG בכל מקום שהוא מופיע */
 if (TEAM.logo){
   $$('svg.crest-sm, svg.crest-lg').forEach(svg => {
     const img = new Image();
@@ -752,9 +1032,8 @@ if (TEAM.logo){
     svg.replaceWith(img);
   });
 }
-$('#year').textContent = new Date().getFullYear();
 
-/* --- מספרים בראש --- */
+/* ===================== מספרים בראש ===================== */
 const CATS = ['שוער', 'הגנה', 'קישור', 'התקפה'];
 
 function autoStats(){
@@ -769,9 +1048,17 @@ $('#statsRow').style.gridTemplateColumns = `repeat(${Math.min(statsData.length, 
 $('#statsRow').innerHTML = statsData
   .map(s => `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`).join('');
 
-/* --- חדשות --- */
-if (NEWS.length){
-  $('#newsList').innerHTML = NEWS.map(item => `
+/* ===================== חדשות ===================== */
+let extraNews = [];
+
+function renderNews(){
+  const all = [...extraNews, ...NEWS];
+  if (!all.length){
+    $('#newsList').innerHTML = soonCard('העדכונים בדרך',
+      'כל ההכרזות והחדשות של הקבוצה יופיעו כאן.');
+    return;
+  }
+  $('#newsList').innerHTML = all.map(item => `
     <article class="item${item.image ? '' : ' no-img'}">
       ${item.image ? `<div class="thumb"><img src="${esc(item.image)}"
            alt="${esc(item.title)}" loading="lazy"></div>` : ''}
@@ -787,7 +1074,6 @@ if (NEWS.length){
       </div>
     </article>`).join('');
 
-  /* עדכון שהתמונה שלו עוד לא הועלתה יוצג בלי תמונה, לא עם ריבוע שבור */
   $$('#newsList .thumb img').forEach(img => {
     img.addEventListener('error', () => {
       const card = img.closest('.item');
@@ -795,51 +1081,62 @@ if (NEWS.length){
       card.classList.add('no-img');
     });
   });
-} else {
-  $('#newsList').innerHTML = `
+}
+
+function soonCard(title, text){
+  return `
     <div class="soon">
       <span class="soon-badge">בקרוב</span>
-      <h3>העדכונים בדרך</h3>
-      <p>כל ההכרזות והחדשות של הקבוצה יופיעו כאן.</p>
+      <h3>${esc(title)}</h3>
+      <p>${esc(text)}</p>
       <a class="btn btn-ghost" href="${esc(TEAM.instagram)}" target="_blank" rel="noopener">
         📸 לעמוד האינסטגרם
       </a>
     </div>`;
 }
 
-/* --- סגל --- */
-/* מציגים רק צ'יפים של עמדות שבאמת קיימות בסגל */
+/* ===================== סגל ===================== */
 const POSITIONS = [
   'הכל',
   ...CATS.filter(c => SQUAD.some(p => p.cat === c)),
   ...(SQUAD.some(p => p.status) ? ['פצועים'] : [])
 ];
 let activePos = 'הכל';
+const photoOf = {};          /* אינדקס שחקן → כתובת תמונה שהועלתה */
 
 $('#posFilters').innerHTML = POSITIONS
   .map(p => `<button class="chip${p === activePos ? ' on' : ''}" data-pos="${esc(p)}">${esc(p)}</button>`).join('');
 
-function initials(name){
-  return name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('');
-}
-
+const initials = name => name.trim().split(/\s+/).slice(0, 2).map(w => w[0]).join('');
 const hasStats = p => p.apps != null || p.goals != null || p.assists != null;
 
 function renderSquad(){
-  const list =
-    activePos === 'הכל'     ? SQUAD :
-    activePos === 'פצועים' ? SQUAD.filter(p => p.status) :
-                              SQUAD.filter(p => p.cat === activePos);
+  const list = SQUAD
+    .map((p, i) => ({ ...p, i }))
+    .filter(p =>
+      activePos === 'הכל'     ? true :
+      activePos === 'פצועים' ? !!p.status :
+                                p.cat === activePos);
 
-  $('#squadGrid').innerHTML = list.map(p => `
+  $('#squadGrid').innerHTML = list.map(p => {
+    const pic = photoOf[p.i] || p.photo;
+    return `
     <article class="player${p.status ? ' out' : ''}">
       <div class="photo">
         ${p.n ? `<span class="shirt">${esc(p.n)}</span>` : ''}
         ${p.captain ? '<span class="badge cap">קפטן</span>' : ''}
         ${p.status  ? `<span class="badge inj">${esc(p.status)}</span>` : ''}
-        ${p.photo
-          ? `<img src="${esc(p.photo)}" alt="${esc(p.name)}" loading="lazy">`
+        ${pic
+          ? `<img src="${esc(pic)}" alt="${esc(p.name)}" loading="lazy">`
           : `<span class="initials">${esc(initials(p.name))}</span>`}
+        ${CL.on ? `<button class="shoot" data-shoot="${p.i}"
+             title="העלאת תמונה ל${esc(p.name)}" aria-label="העלאת תמונה ל${esc(p.name)}">
+             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                  stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+               <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+               <circle cx="12" cy="13" r="4"/>
+             </svg>
+           </button>` : ''}
       </div>
       <div class="info">
         <h3>${esc(p.name)}</h3>
@@ -851,9 +1148,9 @@ function renderSquad(){
           <div><b>${p.assists ?? 0}</b><span>בישולים</span></div>
         </div>` : ''}
       </div>
-    </article>`).join('');
+    </article>`;
+  }).join('');
 }
-renderSquad();
 
 $('#posFilters').addEventListener('click', e => {
   const btn = e.target.closest('[data-pos]');
@@ -863,7 +1160,7 @@ $('#posFilters').addEventListener('click', e => {
   renderSquad();
 });
 
-/* --- טבלה, מלך שערים ומלך בישולים --- */
+/* ===================== טבלה ומלכי השערים ===================== */
 const TABS = [
   { id:'league',  label:'טבלת הליגה',  show: LEAGUE.length > 0 },
   { id:'scorers', label:'מלך שערים',   show: SQUAD.some(p => p.goals   > 0) },
@@ -871,7 +1168,6 @@ const TABS = [
 ].filter(t => t.show);
 
 if (!TABS.length){
-  /* אין עדיין נתונים — מסתירים את הסקשן ואת הקישור אליו בתפריט */
   $('#table').remove();
   $$('.nav a[href="#table"]').forEach(a => a.remove());
 } else {
@@ -931,12 +1227,20 @@ if (!TABS.length){
   if ($('#assistsList')) renderRanking($('#assistsList'), 'assists', 'בישולים');
 }
 
-/* --- פודקאסט --- */
-if (PODCASTS.length){
-  $('#podList').innerHTML = PODCASTS.map(p => `
+/* ===================== פודקאסט ===================== */
+let extraPods = [];
+
+function renderPodcast(){
+  const all = [...extraPods, ...PODCASTS];
+  if (!all.length){
+    $('#podList').innerHTML = soonCard('הפרקים בדרך',
+      '"הבה נרגילה" עולה לאוויר בקרוב. עד אז — כל העדכונים באינסטגרם.');
+    return;
+  }
+  $('#podList').innerHTML = all.map(p => `
     <article class="pod">
       <div class="pod-head">
-        <div class="pod-num">#${p.n}</div>
+        <div class="pod-num">#${esc(p.n ?? '')}</div>
         <div>
           <h3>${esc(p.title)}</h3>
           <p class="meta">${[p.date, p.duration].filter(Boolean)
@@ -950,35 +1254,24 @@ if (PODCASTS.length){
         </button>
       </div>
       <div class="pod-body">
-        <p>${esc(p.desc)}</p>
+        ${p.desc ? `<p>${esc(p.desc)}</p>` : ''}
         ${p.embed
           ? `<iframe src="${esc(p.embed)}" height="180" loading="lazy"
                allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`
           : ''}
       </div>
     </article>`).join('');
-
-  $('#podList').addEventListener('click', e => {
-    const head = e.target.closest('.pod-head');
-    if (head) head.parentElement.classList.toggle('open');
-  });
-} else {
-  $('#podList').innerHTML = `
-    <div class="soon">
-      <span class="soon-badge">בקרוב</span>
-      <h3>הפרקים בדרך</h3>
-      <p>"הבה נרגילה" עולה לאוויר בקרוב. עד אז — כל העדכונים באינסטגרם.</p>
-      <a class="btn btn-ghost" href="${esc(TEAM.instagram)}" target="_blank" rel="noopener">
-        📸 לעמוד האינסטגרם
-      </a>
-    </div>`;
 }
 
-/* --- גלריה --- */
+$('#podList').addEventListener('click', e => {
+  const head = e.target.closest('.pod-head');
+  if (head) head.parentElement.classList.toggle('open');
+});
+
+/* ===================== גלריה ===================== */
 const EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 let shots = [];
 
-/* בודק אם קובץ תמונה קיים בפועל */
 const probe = src => new Promise(done => {
   const img = new Image();
   img.onload  = () => done(src);
@@ -986,7 +1279,6 @@ const probe = src => new Promise(done => {
   img.src = src;
 });
 
-/* מנסה את הסיומות אחת אחרי השנייה עד שאחת נטענת */
 async function findImage(base){
   for (const ext of EXTS){
     const hit = await probe(`${base}.${ext}`);
@@ -995,45 +1287,15 @@ async function findImage(base){
   return null;
 }
 
-/* דף ההעלאה הישיר (/upload/) נוח יותר — גוררים ומסיימים — אבל הוא
-   לא מסתדר עם שם ענף שמכיל לוכסן, כי GitHub לא יודע איפה נגמר שם
-   הענף ומתחיל הנתיב. במקרה כזה נופלים לדף התיקייה (/tree/),
-   שממנו מעלים דרך Add file ← Upload files. */
-const directUpload = () => TEAM.upload && !TEAM.upload.branch.includes('/');
-
-function uploadUrl(){
-  const u = TEAM.upload;
-  if (!u || !u.repo) return '';
-  return `https://github.com/${u.repo}/${directUpload() ? 'upload' : 'tree'}/${u.branch}/${u.dir}`;
-}
-
-/* ההסבר משתנה לפי סוג הקישור שנוצר */
-const uploadSteps = () => directUpload()
-  ? 'גוררים לשם קבצים בשמות 1.jpg, 2.jpg, 3.jpg … והם יופיעו כאן לבד'
-  : 'נפתחת תיקיית התמונות ב-GitHub. לוחצים Add file ← Upload files, ' +
-    'גוררים קבצים בשמות 1.jpg, 2.jpg, 3.jpg … והם יופיעו כאן לבד';
-
 function galleryEmpty(){
-  const url = uploadUrl();
   $('#galleryGrid').classList.add('empty');
-  $('#galleryGrid').innerHTML = `
-    <div class="soon">
-      <span class="soon-badge">בקרוב</span>
-      <h3>התמונות בדרך</h3>
-      <p>הרגעים הכי טובים מהמגרש יעלו לכאן. בינתיים הכל נמצא באינסטגרם.</p>
-      <a class="btn btn-ghost" href="${esc(TEAM.instagram)}" target="_blank" rel="noopener">
-        📸 לעמוד האינסטגרם
-      </a>
-      ${url ? `<a class="btn btn-main" href="${esc(url)}" target="_blank" rel="noopener"
-                 style="margin-inline-start:10px">⬆️ העלאת תמונות</a>
-               <p style="margin:16px 0 0;font-size:13px">${esc(uploadSteps())}</p>` : ''}
-    </div>`;
+  $('#galleryGrid').innerHTML = soonCard('התמונות בדרך',
+    CL.on ? 'לוחצים על "הוספת תוכן" ומעלים את הרגעים הכי טובים מהמגרש.'
+          : 'הרגעים הכי טובים מהמגרש יעלו לכאן. בינתיים הכל נמצא באינסטגרם.');
 }
 
 function renderGallery(){
-  if (!shots.length) return galleryEmpty();   /* הכרטיס הריק כבר מכיל כפתור העלאה */
-
-  uploadLink();
+  if (!shots.length) return galleryEmpty();
 
   $('#galleryGrid').classList.remove('empty');
   $('#galleryGrid').innerHTML = shots.map((g, i) => `
@@ -1041,30 +1303,14 @@ function renderGallery(){
       <img src="${esc(g.src)}" alt="${esc(g.caption || 'תמונה מהמגרש')}" loading="lazy">
       ${g.caption ? `<figcaption class="cap-txt">${esc(g.caption)}</figcaption>` : ''}
     </figure>`).join('');
-}
 
-/* קישור ההעלאה שמתחת לגלריה */
-function uploadLink(){
-  const url = uploadUrl();
-  if (!url) return;
-  $('#uploadHint').innerHTML = `
-    <a href="${esc(url)}" target="_blank" rel="noopener">⬆️ העלאת תמונות לגלריה</a>
-    <span>${esc(uploadSteps())}</span>`;
+  $$('#galleryGrid img').forEach(img => {
+    img.addEventListener('error', () => {
+      img.closest('.shot')?.remove();
+      if (!$('#galleryGrid').children.length) galleryEmpty();
+    });
+  });
 }
-
-/* איתור התמונות: קודם הרשימה הידנית, אחר כך הקבצים הממוספרים */
-(async function loadGallery(){
-  const numbered = await Promise.all(
-    Array.from({ length: GALLERY_SLOTS }, (_, i) => findImage(`images/${i + 1}`))
-  );
-  shots = [
-    ...GALLERY.filter(g => g.src),
-    ...numbered
-      .map((src, i) => src ? { src, caption: GALLERY_CAPTIONS[i + 1] || '' } : null)
-      .filter(Boolean)
-  ];
-  renderGallery();
-})();
 
 const lb = $('#lightbox');
 $('#galleryGrid').addEventListener('click', e => {
@@ -1079,7 +1325,56 @@ $('#galleryGrid').addEventListener('click', e => {
 lb.addEventListener('click', () => lb.classList.remove('on'));
 document.addEventListener('keydown', e => { if (e.key === 'Escape') lb.classList.remove('on'); });
 
-/* --- אינסטגרם --- */
+/* ===================== טעינת התוכן מהענן ===================== */
+async function loadGallery(){
+  const numbered = await Promise.all(
+    Array.from({ length: GALLERY_SLOTS }, (_, i) => findImage(`images/${i + 1}`))
+  );
+  const local = [
+    ...GALLERY.filter(g => g.src),
+    ...numbered
+      .map((src, i) => src ? { src, caption: GALLERY_CAPTIONS[i + 1] || '' } : null)
+      .filter(Boolean)
+  ];
+  const cloud = (await CL.list('gallery'))
+    .map(r => ({ src: CL.img(r), caption: CL.ctx(r, 'caption') }));
+
+  shots = [...cloud, ...local];
+  renderGallery();
+}
+
+async function loadPlayerPhotos(){
+  const found = await CL.list('players');
+  found.forEach(r => {                       /* הרשימה ממוינת מהחדש לישן */
+    const m = /^player-(\d+)-/.exec(r.public_id.split('/').pop() || '');
+    if (!m) return;
+    const i = +m[1];
+    if (SQUAD[i] && !(i in photoOf)) photoOf[i] = CL.img(r, 700);
+  });
+  if (Object.keys(photoOf).length) renderSquad();
+}
+
+/* חדשות ופרקים נשמרים כקובצי JSON קטנים, אחד לכל פריט */
+async function loadDocs(tag){
+  const items = await CL.list(tag, 'raw');
+  const docs = await Promise.all(items.map(async r => {
+    try {
+      const res = await fetch(CL.raw(r));
+      return res.ok ? await res.json() : null;
+    } catch { return null; }
+  }));
+  return docs.filter(Boolean);
+}
+
+async function loadCloudContent(){
+  if (!CL.on) return;
+  const [news, pods] = await Promise.all([loadDocs('news'), loadDocs('podcast')]);
+  if (news.length){ extraNews = news; renderNews(); }
+  if (pods.length){ extraPods = pods; renderPodcast(); }
+  loadPlayerPhotos();
+}
+
+/* ===================== אינסטגרם ופוטר ===================== */
 if (IG_POSTS.length){
   $('#igEmbeds').innerHTML = IG_POSTS.map(url => `
     <blockquote class="instagram-media" data-instgrm-permalink="${esc(url)}"
@@ -1090,17 +1385,14 @@ if (IG_POSTS.length){
   document.body.appendChild(s);
 }
 
-/* --- קישורים בפוטר --- */
-const LINKS = [
+$('#footLinks').innerHTML = [
   { url: TEAM.instagram, icon:'📸', label:'אינסטגרם' },
   { url: TEAM.whatsapp,  icon:'💬', label:'וואטסאפ'  },
   { url: TEAM.youtube,   icon:'▶️', label:'יוטיוב'   }
-].filter(l => l.url);
-$('#footLinks').innerHTML = LINKS.map(l =>
+].filter(l => l.url).map(l =>
   `<a href="${esc(l.url)}" target="_blank" rel="noopener" title="${esc(l.label)}"
       aria-label="${esc(l.label)}">${l.icon}</a>`).join('');
 
-/* --- הדגשת הפריט הפעיל בתפריט --- */
 const navLinks = $$('.nav a');
 const spy = new IntersectionObserver(entries => {
   entries.forEach(en => {
@@ -1109,6 +1401,216 @@ const spy = new IntersectionObserver(entries => {
   });
 }, { rootMargin: '-45% 0px -50% 0px' });
 $$('section[id]').forEach(sec => spy.observe(sec));
+
+/* ===================== פאנל הוספת התוכן ===================== */
+function setNote(el, text, kind = ''){
+  el.innerHTML = text ? `<div class="note ${kind}">${esc(text)}</div>` : '';
+}
+
+/* מציג תמונה בתור בזמן ההעלאה, ומסמן הצלחה או כישלון */
+function queueTile(box, file){
+  const fig = document.createElement('figure');
+  fig.innerHTML = `<img alt=""><div class="state"><div class="spin"></div></div>`;
+  $('img', fig).src = URL.createObjectURL(file);
+  box.appendChild(fig);
+  return {
+    ok(){  $('.state', fig).outerHTML = '<div class="state ok">✓</div>'; },
+    bad(){ $('.state', fig).outerHTML = '<div class="state bad">✕</div>'; }
+  };
+}
+
+/* נעילה בסיסמה — פועלת רק אם TEAM.editCode מולא */
+const CODE_KEY = 'hameuhedet-edit-code';
+function mayEdit(){
+  if (!TEAM.editCode) return true;
+  if (localStorage.getItem(CODE_KEY) === TEAM.editCode) return true;
+  const typed = prompt('קוד עריכה:');
+  if (typed === TEAM.editCode){
+    try { localStorage.setItem(CODE_KEY, typed); } catch {}
+    return true;
+  }
+  if (typed !== null) alert('הקוד שגוי.');
+  return false;
+}
+
+if (CL.on){
+  const sheet = $('#sheet');
+  $('#fab').hidden = false;
+
+  const openSheet = form => {
+    if (!mayEdit()) return;
+    if (form){
+      $$('#sheetTabs .chip').forEach(c => c.classList.toggle('on', c.dataset.form === form));
+      $$('.form-pane').forEach(pn => pn.classList.toggle('on', pn.id === 'form-' + form));
+    }
+    sheet.classList.add('on');
+  };
+  const closeSheet = () => sheet.classList.remove('on');
+
+  $('#fab').addEventListener('click', () => openSheet());
+  $('#sheetX').addEventListener('click', closeSheet);
+  sheet.addEventListener('click', e => { if (e.target === sheet) closeSheet(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeSheet(); });
+
+  $('#sheetTabs').addEventListener('click', e => {
+    const btn = e.target.closest('[data-form]');
+    if (!btn) return;
+    $$('#sheetTabs .chip').forEach(c => c.classList.toggle('on', c === btn));
+    $$('.form-pane').forEach(pn => pn.classList.toggle('on', pn.id === 'form-' + btn.dataset.form));
+  });
+
+  /* ---- תמונות לגלריה ---- */
+  const drop = $('#drop'), dropInput = $('#dropInput'), queue = $('#queue');
+
+  async function sendPhotos(files){
+    const list = [...files].filter(f => f.type.startsWith('image/'));
+    if (!list.length) return;
+    const caption = $('#capInput').value.trim();
+    setNote($('#photoNote'), `מעלה ${list.length} תמונות…`);
+
+    let good = 0;
+    await Promise.all(list.map(async file => {
+      const tile = queueTile(queue, file);
+      try {
+        const res = await CL.upload(await shrink(file), {
+          tags:['gallery'], context: caption ? { caption } : null
+        });
+        tile.ok();
+        good++;
+        shots.unshift({ src: CL.img(res), caption });
+        renderGallery();
+      } catch (err){
+        tile.bad();
+        setNote($('#photoNote'), err.message, 'bad');
+      }
+    }));
+
+    if (good){
+      setNote($('#photoNote'),
+        `${good} תמונות עלו והן כבר בגלריה. אצל שאר הגולשים הן יופיעו תוך דקה.`, 'ok');
+      $('#capInput').value = '';
+    }
+  }
+
+  drop.addEventListener('click', () => dropInput.click());
+  dropInput.addEventListener('change', () => { sendPhotos(dropInput.files); dropInput.value = ''; });
+  ['dragenter','dragover'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev =>
+    drop.addEventListener(ev, e => { e.preventDefault(); drop.classList.remove('over'); }));
+  drop.addEventListener('drop', e => sendPhotos(e.dataTransfer.files));
+
+  /* ---- תמונת שחקן ---- */
+  $('#playerPick').innerHTML = SQUAD
+    .map((p, i) => `<option value="${i}">${esc(p.name)}${p.n ? ` · ${esc(p.n)}` : ''}</option>`).join('');
+
+  const dropP = $('#dropP'), dropPInput = $('#dropPInput'), queueP = $('#queueP');
+
+  async function sendPlayerPhoto(file){
+    if (!file || !file.type.startsWith('image/')) return;
+    const i = +$('#playerPick').value;
+    const tile = queueTile(queueP, file);
+    setNote($('#playerNote'), 'מעלה…');
+    try {
+      const res = await CL.upload(await shrink(file, 1000), {
+        tags:['players'],
+        publicId:`player-${i}-${Date.now()}`,
+        context:{ player: SQUAD[i].name }
+      });
+      tile.ok();
+      photoOf[i] = CL.img(res, 700);
+      renderSquad();
+      setNote($('#playerNote'), `התמונה של ${SQUAD[i].name} עודכנה.`, 'ok');
+    } catch (err){
+      tile.bad();
+      setNote($('#playerNote'), err.message, 'bad');
+    }
+  }
+
+  dropP.addEventListener('click', () => dropPInput.click());
+  dropPInput.addEventListener('change', () => { sendPlayerPhoto(dropPInput.files[0]); dropPInput.value = ''; });
+  ['dragenter','dragover'].forEach(ev =>
+    dropP.addEventListener(ev, e => { e.preventDefault(); dropP.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev =>
+    dropP.addEventListener(ev, e => { e.preventDefault(); dropP.classList.remove('over'); }));
+  dropP.addEventListener('drop', e => sendPlayerPhoto(e.dataTransfer.files[0]));
+
+  /* כפתור המצלמה שעל כרטיס השחקן פותח את אותה לשונית */
+  $('#squadGrid').addEventListener('click', e => {
+    const btn = e.target.closest('[data-shoot]');
+    if (!btn) return;
+    openSheet('player');
+    $('#playerPick').value = btn.dataset.shoot;
+  });
+
+  /* ---- שמירת מסמך טקסט (חדשות / פרק) ---- */
+  async function saveDoc(tag, doc){
+    const file = new File([JSON.stringify(doc)], `${tag}-${Date.now()}.json`,
+                          { type:'application/json' });
+    return CL.upload(file, { tags:[tag], type:'raw' });
+  }
+
+  const today = () => new Date().toLocaleDateString('he-IL', { day:'numeric', month:'long' });
+
+  /* ---- חדשות ---- */
+  $('#nSend').addEventListener('click', async () => {
+    const title = $('#nTitle').value.trim();
+    const text  = $('#nText').value.trim();
+    if (!title) return setNote($('#newsNote'), 'צריך כותרת לעדכון.', 'bad');
+
+    const btn = $('#nSend');
+    btn.disabled = true;
+    setNote($('#newsNote'), 'מפרסם…');
+    try {
+      let image = '';
+      const f = $('#nImg').files[0];
+      if (f) image = CL.img(await CL.upload(await shrink(f), { tags:['news-image'] }));
+
+      const doc = { date: today(), tag: $('#nTag').value.trim(), title, text, image, link:'' };
+      await saveDoc('news', doc);
+
+      extraNews = [doc, ...extraNews];
+      renderNews();
+      setNote($('#newsNote'), 'העדכון פורסם והוא כבר בראש העמוד.', 'ok');
+      ['#nTitle','#nText'].forEach(sel => $(sel).value = '');
+      $('#nImg').value = '';
+    } catch (err){
+      setNote($('#newsNote'), err.message, 'bad');
+    } finally { btn.disabled = false; }
+  });
+
+  /* ---- פודקאסט ---- */
+  $('#pSend').addEventListener('click', async () => {
+    const title = $('#pTitle').value.trim();
+    if (!title) return setNote($('#podNote'), 'צריך כותרת לפרק.', 'bad');
+
+    const btn = $('#pSend');
+    btn.disabled = true;
+    setNote($('#podNote'), 'שומר…');
+    try {
+      const doc = {
+        n: $('#pNum').value.trim(), title,
+        desc: $('#pDesc').value.trim(), embed: $('#pEmbed').value.trim(),
+        date: today(), duration:''
+      };
+      await saveDoc('podcast', doc);
+
+      extraPods = [doc, ...extraPods];
+      renderPodcast();
+      setNote($('#podNote'), 'הפרק נוסף לאתר.', 'ok');
+      ['#pNum','#pTitle','#pDesc','#pEmbed'].forEach(sel => $(sel).value = '');
+    } catch (err){
+      setNote($('#podNote'), err.message, 'bad');
+    } finally { btn.disabled = false; }
+  });
+}
+
+/* ===================== הפעלה ===================== */
+renderNews();
+renderSquad();
+renderPodcast();
+loadGallery();
+loadCloudContent();
 </script>
 </body>
 </html>
