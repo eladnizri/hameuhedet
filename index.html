@@ -197,6 +197,46 @@ section:nth-of-type(even){background:var(--bg-2)}
 .player.out .photo{filter:grayscale(.65)}
 .player .info h3{min-height:0}
 
+/* ===== הנהלה ===== */
+.staff{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px}
+.boss{
+  position:relative;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;
+  padding:20px;border:1px solid var(--line);border-radius:var(--radius);
+  background:linear-gradient(150deg,var(--card),var(--card-2));transition:.25s;
+}
+.boss:hover{
+  transform:translateY(-4px);border-color:color-mix(in srgb,var(--team-1) 50%,transparent);
+  box-shadow:var(--shadow);
+}
+.boss .face{
+  position:relative;width:88px;height:88px;border-radius:50%;flex:none;overflow:hidden;
+  display:grid;place-items:center;
+  border:2px solid color-mix(in srgb,var(--team-1) 40%,transparent);
+  background:
+    radial-gradient(120% 90% at 70% 0%,color-mix(in srgb,var(--team-2) 22%,transparent),transparent 70%),
+    linear-gradient(158deg,#2a2020,#15100f);
+}
+.boss .face img{width:100%;height:100%;object-fit:cover}
+.boss .face .initials{font-size:28px;font-weight:900;color:color-mix(in srgb,var(--team-1) 50%,transparent)}
+.boss .role{
+  display:inline-block;font-size:11.5px;font-weight:900;letter-spacing:.8px;
+  padding:4px 11px;border-radius:999px;margin-bottom:9px;
+  background:color-mix(in srgb,var(--team-1) 15%,transparent);
+  border:1px solid color-mix(in srgb,var(--team-1) 34%,transparent);color:var(--team-1);
+}
+.boss h3{margin:0;font-size:19px;font-weight:900;line-height:1.25}
+.boss h3.blank{color:var(--txt-dim);font-weight:700;font-size:16px}
+.boss p{margin:7px 0 0;font-size:13.5px;color:var(--txt-dim);line-height:1.5}
+.boss .shoot{
+  position:absolute;inset-block-end:12px;inset-inline-end:12px;
+  width:32px;height:32px;border-radius:50%;border:1px solid var(--line);
+  background:rgba(10,8,8,.72);color:var(--txt);display:grid;place-items:center;
+  cursor:pointer;opacity:0;transition:.2s;
+}
+.boss:hover .shoot,.boss .shoot:focus{opacity:1}
+.boss .shoot:hover{background:var(--team-1);color:var(--ink)}
+@media(hover:none){.boss .shoot{opacity:.85}}
+
 /* ===== טבלה + מלך שערים ===== */
 .tabs{display:flex;gap:8px;margin-bottom:22px;flex-wrap:wrap}
 .pane{display:none}
@@ -530,6 +570,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
     <nav class="nav">
       <a href="#news">חדשות</a>
       <a href="#squad">הסגל</a>
+      <a href="#staff">הנהלה</a>
       <a href="#table">טבלה</a>
       <a href="#podcast">פודקאסט</a>
       <a href="#gallery">גלריה</a>
@@ -584,6 +625,18 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
       </div>
       <div class="filters" id="posFilters"></div>
       <div class="squad" id="squadGrid"></div>
+    </div>
+  </section>
+
+  <!-- ===== הנהלה ===== -->
+  <section id="staff">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">הנהלה</p>
+        <h2>מי מנהל את העסק</h2>
+        <p>האנשים שמאחורי הקבוצה — מי שמחזיק, מי שמנהל ומי שדואג שיהיה משחק.</p>
+      </div>
+      <div class="staff" id="staffGrid"></div>
     </div>
   </section>
 
@@ -682,7 +735,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
 
     <div class="sheet-tabs" id="sheetTabs">
       <button class="chip on" data-form="photos">תמונות לגלריה</button>
-      <button class="chip" data-form="player">תמונת שחקן</button>
+      <button class="chip" data-form="player">תמונת אדם</button>
       <button class="chip" data-form="news">עדכון חדשות</button>
       <button class="chip" data-form="pod">פרק פודקאסט</button>
     </div>
@@ -707,7 +760,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
       <!-- תמונת שחקן -->
       <div class="form-pane" id="form-player">
         <div class="field">
-          <label for="playerPick">בחרו שחקן</label>
+          <label for="playerPick">בחרו שחקן או איש הנהלה</label>
           <select id="playerPick"></select>
         </div>
         <div class="drop" id="dropP">
@@ -848,6 +901,19 @@ const NEWS = [
     text:'אוהדים יקרים, אנחנו בישורת האחרונה לפני פתיחת הליגה לשנת 2026/27. ' +
          'החולצה החדשה כבר כאן — לבנה, עם הסמל על החזה ודגל ישראל על הגב.',
     image:'', link:'' }
+];
+
+/* ---- הנהלה ----
+   role  = התפקיד, מוצג בגדול על הכרטיס.
+   name  = השם. אם ריק — מוצג "טרם עודכן" עד שממלאים.
+   note  = שורת תיאור קצרה (אופציונלי).
+   photo = 'images/shem.jpg'. אפשר גם להעלות תמונה מתוך האתר,
+           דרך כפתור המצלמה שעל הכרטיס.
+   רשימה ריקה = אזור ההנהלה לא מוצג באתר בכלל.              */
+const STAFF = [
+  { role:'בעלים',        name:'', note:'', photo:'' },
+  { role:'מנכ״ל',        name:'', note:'', photo:'' },
+  { role:'מנהל קבוצה',   name:'', note:'', photo:'' }
 ];
 
 /* ---- הסגל ----
@@ -1172,6 +1238,42 @@ $('#posFilters').addEventListener('click', e => {
   renderSquad();
 });
 
+/* ===================== הנהלה ===================== */
+const staffPhoto = {};
+
+function renderStaff(){
+  if (!STAFF.length){
+    $('#staff')?.remove();
+    $$('.nav a[href="#staff"]').forEach(a => a.remove());
+    return;
+  }
+  $('#staffGrid').innerHTML = STAFF.map((m, i) => {
+    const pic  = staffPhoto[i] || m.photo;
+    const named = !!m.name;
+    return `
+    <article class="boss">
+      <div class="face">
+        ${pic
+          ? `<img src="${esc(pic)}" alt="${esc(m.name || m.role)}" loading="lazy">`
+          : `<span class="initials">${esc(named ? initials(m.name) : '?')}</span>`}
+      </div>
+      <div>
+        <span class="role">${esc(m.role)}</span>
+        <h3${named ? '' : ' class="blank"'}>${esc(named ? m.name : 'טרם עודכן')}</h3>
+        ${m.note ? `<p>${esc(m.note)}</p>` : ''}
+      </div>
+      ${CL.on ? `<button class="shoot" data-boss="${i}"
+           title="העלאת תמונה" aria-label="העלאת תמונה ל${esc(m.role)}">
+           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+             <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+             <circle cx="12" cy="13" r="4"/>
+           </svg>
+         </button>` : ''}
+    </article>`;
+  }).join('');
+}
+
 /* ===================== טבלה ומלכי השערים ===================== */
 const TABS = [
   { id:'league',  label:'טבלת הליגה',  show: LEAGUE.length > 0 },
@@ -1355,15 +1457,22 @@ async function loadGallery(){
   renderGallery();
 }
 
-async function loadPlayerPhotos(){
-  const found = await CL.list('players');
-  found.forEach(r => {                       /* הרשימה ממוינת מהחדש לישן */
+/* התמונה העדכנית ביותר לכל אדם: הרשימה ממוינת מהחדש לישן,
+   ולכן הראשונה שנמצאת עבור מספר מסוים היא הנכונה. */
+async function loadPeoplePhotos(){
+  const [players, staff] = await Promise.all([CL.list('players'), CL.list('staff')]);
+
+  players.forEach(r => {
     const m = /^player-(\d+)-/.exec(r.public_id.split('/').pop() || '');
-    if (!m) return;
-    const i = +m[1];
-    if (SQUAD[i] && !(i in photoOf)) photoOf[i] = CL.img(r, 700);
+    if (m && SQUAD[+m[1]] && !(+m[1] in photoOf)) photoOf[+m[1]] = CL.img(r, 700);
   });
   if (Object.keys(photoOf).length) renderSquad();
+
+  staff.forEach(r => {
+    const m = /^staff-(\d+)-/.exec(r.public_id.split('/').pop() || '');
+    if (m && STAFF[+m[1]] && !(+m[1] in staffPhoto)) staffPhoto[+m[1]] = CL.img(r, 500);
+  });
+  if (Object.keys(staffPhoto).length) renderStaff();
 }
 
 /* חדשות ופרקים נשמרים כקובצי JSON קטנים, אחד לכל פריט */
@@ -1383,7 +1492,7 @@ async function loadCloudContent(){
   const [news, pods] = await Promise.all([loadDocs('news'), loadDocs('podcast')]);
   if (news.length){ extraNews = news; renderNews(); }
   if (pods.length){ extraPods = pods; renderPodcast(); }
-  loadPlayerPhotos();
+  loadPeoplePhotos();
 }
 
 /* ===================== אינסטגרם ופוטר ===================== */
@@ -1513,26 +1622,36 @@ if (CL.on){
   drop.addEventListener('drop', e => sendPhotos(e.dataTransfer.files));
 
   /* ---- תמונת שחקן ---- */
-  $('#playerPick').innerHTML = SQUAD
-    .map((p, i) => `<option value="${i}">${esc(p.name)}${p.n ? ` · ${esc(p.n)}` : ''}</option>`).join('');
+  $('#playerPick').innerHTML = `
+    <optgroup label="סגל">${SQUAD
+      .map((p, i) => `<option value="p:${i}">${esc(p.name)}${p.n ? ` · ${esc(p.n)}` : ''}</option>`).join('')}
+    </optgroup>
+    ${STAFF.length ? `<optgroup label="הנהלה">${STAFF
+      .map((m, i) => `<option value="s:${i}">${esc(m.role)}${m.name ? ` · ${esc(m.name)}` : ''}</option>`).join('')}
+    </optgroup>` : ''}`;
 
   const dropP = $('#dropP'), dropPInput = $('#dropPInput'), queueP = $('#queueP');
 
   async function sendPlayerPhoto(file){
     if (!file || !file.type.startsWith('image/')) return;
-    const i = +$('#playerPick').value;
+    const [kind, idx] = $('#playerPick').value.split(':');
+    const i = +idx;
+    const staff = kind === 's';
+    const who   = staff ? STAFF[i] : SQUAD[i];
+    const label = staff ? (who.name || who.role) : who.name;
+
     const tile = queueTile(queueP, file);
     setNote($('#playerNote'), 'מעלה…');
     try {
       const res = await CL.upload(await shrink(file, 1000), {
-        tags:['players'],
-        publicId:`player-${i}-${Date.now()}`,
-        context:{ player: SQUAD[i].name }
+        tags:[staff ? 'staff' : 'players'],
+        publicId:`${staff ? 'staff' : 'player'}-${i}-${Date.now()}`,
+        context:{ person: label }
       });
       tile.ok();
-      photoOf[i] = CL.img(res, 700);
-      renderSquad();
-      setNote($('#playerNote'), `התמונה של ${SQUAD[i].name} עודכנה.`, 'ok');
+      if (staff){ staffPhoto[i] = CL.img(res, 500); renderStaff(); }
+      else      { photoOf[i]    = CL.img(res, 700); renderSquad(); }
+      setNote($('#playerNote'), `התמונה של ${label} עודכנה.`, 'ok');
     } catch (err){
       tile.bad();
       setNote($('#playerNote'), err.message, 'bad');
@@ -1552,7 +1671,14 @@ if (CL.on){
     const btn = e.target.closest('[data-shoot]');
     if (!btn) return;
     openSheet('player');
-    $('#playerPick').value = btn.dataset.shoot;
+    $('#playerPick').value = `p:${btn.dataset.shoot}`;
+  });
+
+  $('#staffGrid')?.addEventListener('click', e => {
+    const btn = e.target.closest('[data-boss]');
+    if (!btn) return;
+    openSheet('player');
+    $('#playerPick').value = `s:${btn.dataset.boss}`;
   });
 
   /* ---- שמירת מסמך טקסט (חדשות / פרק) ---- */
@@ -1729,6 +1855,7 @@ if (CL.on){
 /* ===================== הפעלה ===================== */
 renderNews();
 renderSquad();
+renderStaff();
 renderPodcast();
 loadGallery();
 loadCloudContent();
