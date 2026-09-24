@@ -299,6 +299,8 @@ tbody tr.us td:first-child{box-shadow:inset 3px 0 0 var(--team-1)}
 .pod.open .pod-body{display:block}
 .pod-body p{margin:0 0 14px;color:var(--txt-dim);line-height:1.7}
 .pod-body iframe{width:100%;border:0;border-radius:12px}
+.pod-embed{color:var(--txt-dim);font-size:13px;min-height:20px}
+.pod-embed-error a{color:var(--team-1)}
 .soon{
   text-align:center;padding:46px 24px;border:1px dashed var(--line);border-radius:var(--radius);
   background:linear-gradient(160deg,var(--card),var(--card-2));
@@ -813,9 +815,10 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
           <textarea id="pDesc" placeholder="על מה דיברתם בפרק." maxlength="900"></textarea>
         </div>
         <div class="field">
-          <label for="pEmbed">קישור הטמעה (אופציונלי)</label>
-          <input id="pEmbed" type="url" placeholder="https://open.spotify.com/embed/episode/...">
-          <p class="hint">בספוטיפיי: שיתוף ← Embed ← מעתיקים את כתובת ה-src.
+          <label for="pEmbed">קישור לפרק (אופציונלי)</label>
+          <input id="pEmbed" type="url" placeholder="https://soundcloud.com/havanargila/... או https://open.spotify.com/embed/episode/...">
+          <p class="hint">סאונדקלאוד: מדביקים את קישור השיתוף הרגיל של הפרק (soundcloud.com/...) — זה עובד ישירות.
+             בספוטיפיי: שיתוף ← Embed ← מעתיקים את כתובת ה-src.
              ביוטיוב: youtube.com/embed/VIDEO_ID</p>
         </div>
         <button class="btn btn-main btn-wide" id="pSend">הוספת הפרק</button>
@@ -973,7 +976,9 @@ const LEAGUE = [
      desc:'תיאור קצר של הפרק.',
      embed:'https://open.spotify.com/embed/episode/XXXX' }
 
-   embed: בספוטיפיי — שיתוף ← Embed ← מעתיקים את כתובת ה-src מתוך ה-iframe.
+   embed: סאונדקלאוד — מדביקים את קישור השיתוף הרגיל, למשל
+          https://soundcloud.com/havanargila/2a1 (הוא מומר אוטומטית לנגן).
+          בספוטיפיי — שיתוף ← Embed ← מעתיקים את כתובת ה-src מתוך ה-iframe.
           ביוטיוב — https://www.youtube.com/embed/VIDEO_ID
    פרק בלי embed יוצג עם הכותרת והתיאור, בלי נגן.                     */
 const PODCASTS = [];
@@ -1343,6 +1348,29 @@ if (!TABS.length){
 
 /* ===================== פודקאסט ===================== */
 let extraPods = [];
+const scEmbedCache = new Map();
+
+function isSoundCloud(url){
+  try { return new URL(url).hostname.replace(/^www\./, '') === 'soundcloud.com'; }
+  catch { return false; }
+}
+
+async function loadSoundCloudEmbed(container, url){
+  try{
+    let html = scEmbedCache.get(url);
+    if (!html){
+      const res = await fetch(`https://soundcloud.com/oembed?format=json&url=${encodeURIComponent(url)}`);
+      if (!res.ok) throw new Error('oembed failed');
+      const data = await res.json();
+      html = data.html;
+      scEmbedCache.set(url, html);
+    }
+    container.innerHTML = html;
+  }catch{
+    container.innerHTML = `<p class="pod-embed-error">לא הצלחנו לטעון את הנגן.
+      <a href="${esc(url)}" target="_blank" rel="noopener">האזנה ישירות בסאונדקלאוד</a></p>`;
+  }
+}
 
 function renderPodcast(){
   const all = [...extraPods, ...PODCASTS];
@@ -1351,7 +1379,7 @@ function renderPodcast(){
       '"הבה נרגילה" עולה לאוויר בקרוב. עד אז — כל העדכונים באינסטגרם.');
     return;
   }
-  $('#podList').innerHTML = all.map(p => `
+  $('#podList').innerHTML = all.map((p, i) => `
     <article class="pod">
       <div class="pod-head">
         <div class="pod-num">#${esc(p.n ?? '')}</div>
@@ -1370,8 +1398,10 @@ function renderPodcast(){
       <div class="pod-body">
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ''}
         ${p.embed
-          ? `<iframe src="${esc(p.embed)}" height="180" loading="lazy"
-               allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`
+          ? (isSoundCloud(p.embed)
+              ? `<div class="pod-embed" data-pod-index="${i}">טוען נגן…</div>`
+              : `<iframe src="${esc(p.embed)}" height="180" loading="lazy"
+                   allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`)
           : ''}
       </div>
     </article>`).join('');
@@ -1379,7 +1409,16 @@ function renderPodcast(){
 
 $('#podList').addEventListener('click', e => {
   const head = e.target.closest('.pod-head');
-  if (head) head.parentElement.classList.toggle('open');
+  if (!head) return;
+  const article = head.parentElement;
+  article.classList.toggle('open');
+  if (!article.classList.contains('open')) return;
+  const embedBox = article.querySelector('.pod-embed');
+  if (!embedBox || embedBox.dataset.loaded) return;
+  embedBox.dataset.loaded = '1';
+  const all = [...extraPods, ...PODCASTS];
+  const p = all[Number(embedBox.dataset.podIndex)];
+  if (p?.embed) loadSoundCloudEmbed(embedBox, p.embed);
 });
 
 /* ===================== גלריה ===================== */
