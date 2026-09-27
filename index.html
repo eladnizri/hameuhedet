@@ -1216,8 +1216,16 @@
       .hero {
         min-height: 720px;
         background:
-          radial-gradient(ellipse at 78% 18%, color-mix(in srgb, var(--team-1) 13%, transparent), transparent 34%),
-          radial-gradient(ellipse at 18% 30%, color-mix(in srgb, var(--team-2) 12%, transparent), transparent 32%),
+          radial-gradient(
+            ellipse at 78% 18%,
+            color-mix(in srgb, var(--team-1) 13%, transparent),
+            transparent 34%
+          ),
+          radial-gradient(
+            ellipse at 18% 30%,
+            color-mix(in srgb, var(--team-2) 12%, transparent),
+            transparent 32%
+          ),
           linear-gradient(180deg, #17100e 0%, var(--bg) 78%);
       }
       .hero .wrap:first-child {
@@ -1271,7 +1279,11 @@
         border-radius: 15px;
         border-color: rgba(255, 255, 255, 0.09);
         text-align: start;
-        background: linear-gradient(145deg, rgba(48, 35, 30, 0.95), rgba(28, 20, 19, 0.95));
+        background: linear-gradient(
+          145deg,
+          rgba(48, 35, 30, 0.95),
+          rgba(28, 20, 19, 0.95)
+        );
       }
       .stats .stat-icon {
         display: grid;
@@ -1293,18 +1305,40 @@
         font-size: 11px;
         white-space: nowrap;
       }
-      .stats .stat::after { inset: auto 14px 0; }
+      .stats .stat::after {
+        inset: auto 14px 0;
+      }
       @media (max-width: 1040px) {
-        .stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+        .stats {
+          grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+        }
       }
       @media (max-width: 760px) {
-        .hero { min-height: 0; }
-        .hero .wrap:first-child { min-height: 0; }
-        .hero-dashboard { padding-top: 24px; }
-        .dashboard-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
-        .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; padding: 8px; }
-        .stats .stat { min-height: 70px; padding: 11px; }
-        .stats .stat b { font-size: 26px; }
+        .hero {
+          min-height: 0;
+        }
+        .hero .wrap:first-child {
+          min-height: 0;
+        }
+        .hero-dashboard {
+          padding-top: 24px;
+        }
+        .dashboard-heading {
+          align-items: flex-start;
+          flex-direction: column;
+          gap: 4px;
+        }
+        .stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+          padding: 8px;
+        }
+        .stats .stat {
+          min-height: 70px;
+          padding: 11px;
+        }
+        .stats .stat b {
+          font-size: 26px;
+        }
       }
 
       /* ===== שכבת polish: היררכיה, מובייל ונגישות ===== */
@@ -1312,7 +1346,9 @@
         outline: 3px solid var(--team-1);
         outline-offset: 3px;
       }
-      body.menu-open { overflow: hidden; }
+      body.menu-open {
+        overflow: hidden;
+      }
       .menu-toggle {
         display: none;
         width: 42px;
@@ -1324,23 +1360,36 @@
         color: var(--txt);
         cursor: pointer;
       }
-      .menu-toggle svg { pointer-events: none; }
+      .menu-toggle svg {
+        pointer-events: none;
+      }
       .hero .wrap:first-child {
         grid-template-columns: 170px minmax(0, 1fr) 270px;
         gap: 30px;
       }
-      .hero-copy { min-width: 0; }
-      .hero-side { display: grid; gap: 12px; }
+      .hero-copy {
+        min-width: 0;
+      }
+      .hero-side {
+        display: grid;
+        gap: 12px;
+      }
       .next-match,
       .hero-side-note {
         position: relative;
         overflow: hidden;
         border: 1px solid var(--line);
         border-radius: 20px;
-        background: linear-gradient(150deg, rgba(39, 30, 28, 0.96), rgba(24, 17, 16, 0.96));
+        background: linear-gradient(
+          150deg,
+          rgba(39, 30, 28, 0.96),
+          rgba(24, 17, 16, 0.96)
+        );
         box-shadow: var(--shadow);
       }
-      .next-match { padding: 22px; }
+      .next-match {
+        padding: 22px;
+      }
       .next-match::before {
         content: "";
         position: absolute;
@@ -1359,7 +1408,11 @@
         font-weight: 900;
         letter-spacing: 1.2px;
       }
-      .next-match strong { display: block; font-size: 23px; line-height: 1.2; }
+      .next-match strong {
+        display: block;
+        font-size: 23px;
+        line-height: 1.2;
+      }
       .next-match-meta {
         display: grid;
         gap: 5px;
@@ -1413,22 +1466,43 @@
         font-size: 13px;
         line-height: 1.45;
       }
-      .hero-side-note svg { width: 46px; height: 50px; flex: none; }
-      .hero-side-note b { display: block; margin-bottom: 2px; color: var(--txt); font-size: 15px; }
-      .stats .stat { position: relative; overflow: hidden; transition: 0.25s; }
+      .hero-side-note svg {
+        width: 46px;
+        height: 50px;
+        flex: none;
+      }
+      .hero-side-note b {
+        display: block;
+        margin-bottom: 2px;
+        color: var(--txt);
+        font-size: 15px;
+      }
+      .stats .stat {
+        position: relative;
+        overflow: hidden;
+        transition: 0.25s;
+      }
       .stats .stat::after {
         content: "";
         position: absolute;
         inset: auto 16px 0;
         height: 2px;
-        background: linear-gradient(90deg, transparent, var(--team-2), transparent);
+        background: linear-gradient(
+          90deg,
+          transparent,
+          var(--team-2),
+          transparent
+        );
         opacity: 0.75;
       }
       .stats .stat:hover {
         transform: translateY(-4px);
         border-color: color-mix(in srgb, var(--team-1) 45%, transparent);
       }
-      .sec-head { position: relative; padding-inline-start: 18px; }
+      .sec-head {
+        position: relative;
+        padding-inline-start: 18px;
+      }
       .sec-head::before {
         content: "";
         position: absolute;
@@ -1438,7 +1512,14 @@
         border-radius: 4px;
         background: linear-gradient(var(--team-1), var(--team-2));
       }
-      .item, .player, .boss, .pod, .scorer, .shot { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12); }
+      .item,
+      .player,
+      .boss,
+      .pod,
+      .scorer,
+      .shot {
+        box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12);
+      }
       .media-toolbar {
         display: flex;
         align-items: center;
@@ -1446,18 +1527,37 @@
         gap: 16px;
         margin: -10px 0 24px;
       }
-      .media-toolbar-label { color: var(--txt-dim); font-size: 13px; font-weight: 700; }
-      .media-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+      .media-toolbar-label {
+        color: var(--txt-dim);
+        font-size: 13px;
+        font-weight: 700;
+      }
+      .media-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
       .media-grid {
-        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 320px));
+        grid-template-columns: repeat(
+          auto-fit,
+          minmax(min(100%, 280px), 320px)
+        );
         justify-content: center;
         max-width: 1040px;
         margin-inline: auto;
       }
-      .media-card.featured { grid-column: auto; }
-      .media-card.featured .media-poster { aspect-ratio: 4/5; }
-      .media-card.featured .media-info h3 { font-size: 17px; }
-      .media-card.is-hidden { display: none; }
+      .media-card.featured {
+        grid-column: auto;
+      }
+      .media-card.featured .media-poster {
+        aspect-ratio: 4/5;
+      }
+      .media-card.featured .media-info h3 {
+        font-size: 17px;
+      }
+      .media-card.is-hidden {
+        display: none;
+      }
       .media-category {
         display: inline-flex;
         margin-bottom: 8px;
@@ -1490,7 +1590,9 @@
         font-size: 150px;
         font-weight: 900;
       }
-      .media-grid.empty .soon > * { position: relative; }
+      .media-grid.empty .soon > * {
+        position: relative;
+      }
       .toast-region {
         position: fixed;
         z-index: 130;
@@ -1512,22 +1614,43 @@
         font-weight: 700;
         animation: toast-in 0.25s ease both;
       }
-      .toast.bad { border-color: color-mix(in srgb, var(--team-2) 60%, transparent); }
+      .toast.bad {
+        border-color: color-mix(in srgb, var(--team-2) 60%, transparent);
+      }
       @keyframes toast-in {
-        from { opacity: 0; transform: translateY(-8px); }
-        to { opacity: 1; transform: none; }
+        from {
+          opacity: 0;
+          transform: translateY(-8px);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
       }
       @media (max-width: 1040px) {
-        .hero .wrap:first-child { grid-template-columns: 140px minmax(0, 1fr); }
-        .hero-side { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .hero .wrap:first-child {
+          grid-template-columns: 140px minmax(0, 1fr);
+        }
+        .hero-side {
+          grid-column: 1 / -1;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
         .media-grid {
-          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 320px));
+          grid-template-columns: repeat(
+            auto-fit,
+            minmax(min(100%, 280px), 320px)
+          );
           justify-content: center;
         }
       }
       @media (max-width: 760px) {
-        .menu-toggle { display: grid; place-items: center; }
-        .topbar .wrap { position: relative; }
+        .menu-toggle {
+          display: grid;
+          place-items: center;
+        }
+        .topbar .wrap {
+          position: relative;
+        }
         .nav {
           position: absolute;
           inset: 64px 12px auto;
@@ -1540,27 +1663,57 @@
           background: rgba(20, 16, 16, 0.98);
           box-shadow: var(--shadow);
         }
-        .nav.open { display: flex; }
-        .nav a { padding: 12px 14px; }
-        .hero .wrap:first-child { grid-template-columns: 1fr; gap: 20px; }
-        .hero-side { grid-template-columns: 1fr; width: 100%; }
-        .hero-copy { text-align: center; }
-        .hero-copy .kicker { justify-content: center; }
-        .media-toolbar { align-items: flex-start; flex-direction: column; }
+        .nav.open {
+          display: flex;
+        }
+        .nav a {
+          padding: 12px 14px;
+        }
+        .hero .wrap:first-child {
+          grid-template-columns: 1fr;
+          gap: 20px;
+        }
+        .hero-side {
+          grid-template-columns: 1fr;
+          width: 100%;
+        }
+        .hero-copy {
+          text-align: center;
+        }
+        .hero-copy .kicker {
+          justify-content: center;
+        }
+        .media-toolbar {
+          align-items: flex-start;
+          flex-direction: column;
+        }
         .media-grid {
           grid-template-columns: minmax(0, 320px);
           justify-content: center;
         }
-        .media-card.featured { grid-column: auto; }
+        .media-card.featured {
+          grid-column: auto;
+        }
       }
       @media (max-width: 420px) {
-        .wrap { padding-inline: 14px; }
-        .media-grid { gap: 8px; }
-        .media-info h3, .media-card.featured .media-info h3 { font-size: 14px; }
-        .media-info p { font-size: 11px; }
+        .wrap {
+          padding-inline: 14px;
+        }
+        .media-grid {
+          gap: 8px;
+        }
+        .media-info h3,
+        .media-card.featured .media-info h3 {
+          font-size: 14px;
+        }
+        .media-info p {
+          font-size: 11px;
+        }
       }
       @media (prefers-reduced-motion: reduce) {
-        *, *::before, *::after {
+        *,
+        *::before,
+        *::after {
           scroll-behavior: auto !important;
           animation-duration: 0.01ms !important;
           transition-duration: 0.01ms !important;
@@ -2302,8 +2455,21 @@
           <svg class="crest-sm"><use href="#crest" /></svg>
           <span data-team-name>המאוחדת</span>
         </a>
-        <button class="menu-toggle" id="menuToggle" aria-label="פתיחת תפריט" aria-expanded="false">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+        <button
+          class="menu-toggle"
+          id="menuToggle"
+          aria-label="פתיחת תפריט"
+          aria-expanded="false"
+        >
+          <svg
+            width="20"
+            height="20"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2.5"
+            stroke-linecap="round"
+          >
             <path d="M4 6h16M4 12h16M4 18h16" />
           </svg>
         </button>
@@ -2346,7 +2512,11 @@
               <div class="next-match-meta">
                 <span id="nextMatchDate">📅 מועד המשחק יתעדכן כאן</span>
                 <span id="nextMatchVenue">📍 מיקום המשחק יתעדכן כאן</span>
-                <div class="next-match-countdown" id="nextMatchCountdown" aria-label="ספירה לאחור למשחק הבא">
+                <div
+                  class="next-match-countdown"
+                  id="nextMatchCountdown"
+                  aria-label="ספירה לאחור למשחק הבא"
+                >
                   <span class="countdown-unit">
                     <b class="countdown-value" data-countdown="days">—</b>
                     <span class="countdown-label">ימים</span>
@@ -2492,8 +2662,14 @@
             </p>
           </div>
           <div class="media-toolbar">
-            <span class="media-toolbar-label">הסיפורים של הקבוצה, בפריים אחד</span>
-            <div class="media-filters" id="mediaFilters" aria-label="סינון סרטונים"></div>
+            <span class="media-toolbar-label"
+              >הסיפורים של הקבוצה, בפריים אחד</span
+            >
+            <div
+              class="media-filters"
+              id="mediaFilters"
+              aria-label="סינון סרטונים"
+            ></div>
           </div>
           <div class="media-grid" id="mediaGrid"></div>
         </div>
@@ -3228,7 +3404,8 @@
         const minutes = Math.floor((totalSeconds % 3600) / 60);
         const seconds = totalSeconds % 60;
         const pad = (value) => String(value).padStart(2, "0");
-        $("#nextMatchDate").textContent = `📅 יום שישי · 15:00 · ${target.toLocaleDateString("he-IL", { day: "numeric", month: "long" })}`;
+        $("#nextMatchDate").textContent =
+          `📅 יום שישי · 15:00 · ${target.toLocaleDateString("he-IL", { day: "numeric", month: "long" })}`;
         $("[data-countdown='days']").textContent = days;
         $("[data-countdown='hours']").textContent = pad(hours);
         $("[data-countdown='minutes']").textContent = pad(minutes);
@@ -3706,7 +3883,10 @@
         if (!all.length) return mediaEmpty();
 
         $("#mediaGrid").classList.remove("empty");
-        if (activeMediaCategory !== "הכל" && !all.some((m) => m.category === activeMediaCategory))
+        if (
+          activeMediaCategory !== "הכל" &&
+          !all.some((m) => m.category === activeMediaCategory)
+        )
           activeMediaCategory = "הכל";
         renderMediaFilters(all);
         $("#mediaGrid").innerHTML = all
@@ -3938,7 +4118,10 @@
             return;
           }
           const previous = docsByVideo.get(normalized.publicId);
-          if (!previous || Number(normalized.updatedAt || 0) >= Number(previous.updatedAt || 0))
+          if (
+            !previous ||
+            Number(normalized.updatedAt || 0) >= Number(previous.updatedAt || 0)
+          )
             docsByVideo.set(normalized.publicId, normalized);
         });
         const docs = [...docsByVideo.values()];
@@ -4005,7 +4188,9 @@
         document.body.classList.toggle("menu-open", open);
         menuToggle.setAttribute("aria-expanded", String(open));
       });
-      navLinks.forEach((link) => link.addEventListener("click", closeMobileMenu));
+      navLinks.forEach((link) =>
+        link.addEventListener("click", closeMobileMenu),
+      );
       const spy = new IntersectionObserver(
         (entries) => {
           entries.forEach((en) => {
@@ -4097,7 +4282,10 @@
           $("#editMediaTitle").value = item.title || "";
           $("#editMediaParticipants").value = item.participants || "";
           $("#editMediaCategory").value = item.category || "משחק";
-          setNote($("#editMediaNote"), "אפשר לעדכן את הפרטים ולשמור בלי להעלות את הסרטון מחדש.");
+          setNote(
+            $("#editMediaNote"),
+            "אפשר לעדכן את הפרטים ולשמור בלי להעלות את הסרטון מחדש.",
+          );
         };
 
         $("#fab").addEventListener("click", () => openSheet());
@@ -4281,14 +4469,26 @@
 
         $("#editMediaSend").addEventListener("click", async () => {
           const publicId = $("#editMediaId").value;
-          const current = allMedia().find((media) => media.publicId === publicId);
+          const current = allMedia().find(
+            (media) => media.publicId === publicId,
+          );
           const title = $("#editMediaTitle").value.trim();
           const participants = $("#editMediaParticipants").value.trim();
           const category = $("#editMediaCategory").value;
-          if (!current) return setNote($("#editMediaNote"), "לא נמצא הסרטון לעריכה.", "bad");
-          if (!title) return setNote($("#editMediaNote"), "צריך כותרת לסרטון.", "bad");
+          if (!current)
+            return setNote(
+              $("#editMediaNote"),
+              "לא נמצא הסרטון לעריכה.",
+              "bad",
+            );
+          if (!title)
+            return setNote($("#editMediaNote"), "צריך כותרת לסרטון.", "bad");
           if (!participants)
-            return setNote($("#editMediaNote"), "צריך למלא את שמות המשתתפים.", "bad");
+            return setNote(
+              $("#editMediaNote"),
+              "צריך למלא את שמות המשתתפים.",
+              "bad",
+            );
 
           const btn = $("#editMediaSend");
           btn.disabled = true;
