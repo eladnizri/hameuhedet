@@ -1088,7 +1088,28 @@
         font-weight: 800;
       }
       .media-info {
+        position: relative;
         padding: 15px 16px 17px;
+      }
+      .media-edit {
+        display: block;
+        margin-top: 11px;
+        margin-inline-start: auto;
+        padding: 5px 9px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(0, 0, 0, 0.28);
+        color: var(--txt-dim);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .media-edit:hover {
+        border-color: var(--team-1);
+        background: color-mix(in srgb, var(--team-1) 18%, transparent);
+        color: var(--team-1);
       }
       .media-info h3 {
         margin: 0;
@@ -1189,6 +1210,361 @@
       .ig-inner p {
         margin: 0 0 20px;
         color: var(--txt-dim);
+      }
+
+      /* ===== דשבורד מועדון ===== */
+      .hero {
+        min-height: 720px;
+        background:
+          radial-gradient(ellipse at 78% 18%, color-mix(in srgb, var(--team-1) 13%, transparent), transparent 34%),
+          radial-gradient(ellipse at 18% 30%, color-mix(in srgb, var(--team-2) 12%, transparent), transparent 32%),
+          linear-gradient(180deg, #17100e 0%, var(--bg) 78%);
+      }
+      .hero .wrap:first-child {
+        min-height: 420px;
+        align-items: center;
+      }
+      .hero .wrap:last-child {
+        display: block;
+      }
+      .hero-dashboard {
+        position: relative;
+        z-index: 2;
+        padding-block: 24px 0;
+        border-top: 1px solid rgba(255, 255, 255, 0.12);
+      }
+      .dashboard-heading {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 14px;
+        color: var(--txt-dim);
+        font-size: 12px;
+      }
+      .dashboard-heading span {
+        color: var(--team-1);
+        font-weight: 900;
+        letter-spacing: 1.4px;
+      }
+      .dashboard-heading b {
+        color: var(--txt);
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .stats {
+        grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+        gap: 10px;
+        margin-top: 0;
+        padding: 10px;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        border-radius: 22px;
+        background: rgba(23, 16, 14, 0.86);
+        box-shadow: 0 20px 50px rgba(0, 0, 0, 0.32);
+      }
+      .stats .stat {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        min-height: 78px;
+        padding: 14px 16px;
+        border-radius: 15px;
+        border-color: rgba(255, 255, 255, 0.09);
+        text-align: start;
+        background: linear-gradient(145deg, rgba(48, 35, 30, 0.95), rgba(28, 20, 19, 0.95));
+      }
+      .stats .stat-icon {
+        display: grid;
+        place-items: center;
+        width: 34px;
+        height: 34px;
+        flex: none;
+        border-radius: 11px;
+        background: color-mix(in srgb, var(--team-1) 15%, transparent);
+        color: var(--team-1);
+        font-size: 18px;
+      }
+      .stats .stat b {
+        font-size: 30px;
+        line-height: 0.95;
+      }
+      .stats .stat span:not(.stat-icon) {
+        margin-top: 5px;
+        font-size: 11px;
+        white-space: nowrap;
+      }
+      .stats .stat::after { inset: auto 14px 0; }
+      @media (max-width: 1040px) {
+        .stats { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
+      }
+      @media (max-width: 760px) {
+        .hero { min-height: 0; }
+        .hero .wrap:first-child { min-height: 0; }
+        .hero-dashboard { padding-top: 24px; }
+        .dashboard-heading { align-items: flex-start; flex-direction: column; gap: 4px; }
+        .stats { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; padding: 8px; }
+        .stats .stat { min-height: 70px; padding: 11px; }
+        .stats .stat b { font-size: 26px; }
+      }
+
+      /* ===== שכבת polish: היררכיה, מובייל ונגישות ===== */
+      :focus-visible {
+        outline: 3px solid var(--team-1);
+        outline-offset: 3px;
+      }
+      body.menu-open { overflow: hidden; }
+      .menu-toggle {
+        display: none;
+        width: 42px;
+        height: 42px;
+        margin-inline-start: auto;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--txt);
+        cursor: pointer;
+      }
+      .menu-toggle svg { pointer-events: none; }
+      .hero .wrap:first-child {
+        grid-template-columns: 170px minmax(0, 1fr) 270px;
+        gap: 30px;
+      }
+      .hero-copy { min-width: 0; }
+      .hero-side { display: grid; gap: 12px; }
+      .next-match,
+      .hero-side-note {
+        position: relative;
+        overflow: hidden;
+        border: 1px solid var(--line);
+        border-radius: 20px;
+        background: linear-gradient(150deg, rgba(39, 30, 28, 0.96), rgba(24, 17, 16, 0.96));
+        box-shadow: var(--shadow);
+      }
+      .next-match { padding: 22px; }
+      .next-match::before {
+        content: "";
+        position: absolute;
+        inset: auto -30px -45px auto;
+        width: 150px;
+        height: 150px;
+        border-radius: 50%;
+        background: color-mix(in srgb, var(--team-2) 22%, transparent);
+        filter: blur(20px);
+      }
+      .panel-label {
+        display: block;
+        margin-bottom: 12px;
+        color: var(--team-1);
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 1.2px;
+      }
+      .next-match strong { display: block; font-size: 23px; line-height: 1.2; }
+      .next-match-meta {
+        display: grid;
+        gap: 5px;
+        margin: 12px 0 18px;
+        color: var(--txt-dim);
+        font-size: 13px;
+      }
+      .next-match-countdown {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 6px;
+        margin-top: 2px;
+        direction: ltr;
+      }
+      .countdown-unit {
+        display: grid;
+        gap: 1px;
+        min-width: 0;
+        padding: 7px 3px 6px;
+        border: 1px solid color-mix(in srgb, var(--team-1) 30%, transparent);
+        border-radius: 9px;
+        background: rgba(0, 0, 0, 0.2);
+        text-align: center;
+      }
+      .countdown-value {
+        color: var(--team-1);
+        font-size: 19px;
+        font-weight: 900;
+        line-height: 1;
+        direction: ltr;
+      }
+      .countdown-label {
+        color: var(--txt-dim);
+        font-size: 10px;
+        font-weight: 600;
+        direction: rtl;
+      }
+      .next-match .btn {
+        position: relative;
+        width: 100%;
+        justify-content: center;
+        padding: 10px 14px;
+        font-size: 13px;
+      }
+      .hero-side-note {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 14px;
+        color: var(--txt-dim);
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .hero-side-note svg { width: 46px; height: 50px; flex: none; }
+      .hero-side-note b { display: block; margin-bottom: 2px; color: var(--txt); font-size: 15px; }
+      .stats .stat { position: relative; overflow: hidden; transition: 0.25s; }
+      .stats .stat::after {
+        content: "";
+        position: absolute;
+        inset: auto 16px 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--team-2), transparent);
+        opacity: 0.75;
+      }
+      .stats .stat:hover {
+        transform: translateY(-4px);
+        border-color: color-mix(in srgb, var(--team-1) 45%, transparent);
+      }
+      .sec-head { position: relative; padding-inline-start: 18px; }
+      .sec-head::before {
+        content: "";
+        position: absolute;
+        inset-block: 4px;
+        inset-inline-start: 0;
+        width: 4px;
+        border-radius: 4px;
+        background: linear-gradient(var(--team-1), var(--team-2));
+      }
+      .item, .player, .boss, .pod, .scorer, .shot { box-shadow: 0 10px 28px rgba(0, 0, 0, 0.12); }
+      .media-toolbar {
+        display: flex;
+        align-items: center;
+        justify-content: flex-start;
+        gap: 16px;
+        margin: -10px 0 24px;
+      }
+      .media-toolbar-label { color: var(--txt-dim); font-size: 13px; font-weight: 700; }
+      .media-filters { display: flex; flex-wrap: wrap; gap: 8px; }
+      .media-grid {
+        grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 320px));
+        justify-content: center;
+        max-width: 1040px;
+        margin-inline: auto;
+      }
+      .media-card.featured { grid-column: auto; }
+      .media-card.featured .media-poster { aspect-ratio: 4/5; }
+      .media-card.featured .media-info h3 { font-size: 17px; }
+      .media-card.is-hidden { display: none; }
+      .media-category {
+        display: inline-flex;
+        margin-bottom: 8px;
+        padding: 3px 9px;
+        border-radius: 999px;
+        background: color-mix(in srgb, var(--team-2) 16%, transparent);
+        color: #ffb1b9;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .media-info .media-date {
+        display: block;
+        margin-top: 4px;
+        color: color-mix(in srgb, var(--txt-dim) 76%, transparent);
+        font-size: 11px;
+      }
+      .media-grid.empty .soon {
+        position: relative;
+        overflow: hidden;
+        min-height: 240px;
+        display: grid;
+        place-items: center;
+      }
+      .media-grid.empty .soon::before {
+        content: "▶";
+        position: absolute;
+        inset: 50% auto auto 50%;
+        transform: translate(-50%, -58%);
+        color: color-mix(in srgb, var(--team-1) 15%, transparent);
+        font-size: 150px;
+        font-weight: 900;
+      }
+      .media-grid.empty .soon > * { position: relative; }
+      .toast-region {
+        position: fixed;
+        z-index: 130;
+        inset-block-start: 82px;
+        inset-inline-start: 20px;
+        display: grid;
+        gap: 10px;
+        width: min(360px, calc(100vw - 40px));
+        pointer-events: none;
+      }
+      .toast {
+        padding: 13px 16px;
+        border: 1px solid color-mix(in srgb, var(--team-1) 45%, transparent);
+        border-radius: 14px;
+        background: rgba(29, 23, 22, 0.96);
+        box-shadow: var(--shadow);
+        color: var(--txt);
+        font-size: 14px;
+        font-weight: 700;
+        animation: toast-in 0.25s ease both;
+      }
+      .toast.bad { border-color: color-mix(in srgb, var(--team-2) 60%, transparent); }
+      @keyframes toast-in {
+        from { opacity: 0; transform: translateY(-8px); }
+        to { opacity: 1; transform: none; }
+      }
+      @media (max-width: 1040px) {
+        .hero .wrap:first-child { grid-template-columns: 140px minmax(0, 1fr); }
+        .hero-side { grid-column: 1 / -1; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .media-grid {
+          grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 320px));
+          justify-content: center;
+        }
+      }
+      @media (max-width: 760px) {
+        .menu-toggle { display: grid; place-items: center; }
+        .topbar .wrap { position: relative; }
+        .nav {
+          position: absolute;
+          inset: 64px 12px auto;
+          display: none;
+          flex-direction: column;
+          gap: 4px;
+          padding: 10px;
+          border: 1px solid var(--line);
+          border-radius: 16px;
+          background: rgba(20, 16, 16, 0.98);
+          box-shadow: var(--shadow);
+        }
+        .nav.open { display: flex; }
+        .nav a { padding: 12px 14px; }
+        .hero .wrap:first-child { grid-template-columns: 1fr; gap: 20px; }
+        .hero-side { grid-template-columns: 1fr; width: 100%; }
+        .hero-copy { text-align: center; }
+        .hero-copy .kicker { justify-content: center; }
+        .media-toolbar { align-items: flex-start; flex-direction: column; }
+        .media-grid {
+          grid-template-columns: minmax(0, 320px);
+          justify-content: center;
+        }
+        .media-card.featured { grid-column: auto; }
+      }
+      @media (max-width: 420px) {
+        .wrap { padding-inline: 14px; }
+        .media-grid { gap: 8px; }
+        .media-info h3, .media-card.featured .media-info h3 { font-size: 14px; }
+        .media-info p { font-size: 11px; }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        *, *::before, *::after {
+          scroll-behavior: auto !important;
+          animation-duration: 0.01ms !important;
+          transition-duration: 0.01ms !important;
+        }
       }
       .btn-ig {
         background: linear-gradient(135deg, #833ab4, #fd1d1d, #fcb045);
@@ -1688,7 +2064,8 @@
           gap: 10px;
         }
         .media-grid {
-          grid-template-columns: repeat(2, 1fr);
+          grid-template-columns: minmax(0, 320px);
+          justify-content: center;
           gap: 10px;
         }
         .media-info {
@@ -1707,6 +2084,110 @@
         }
         .ig-inner {
           padding: 24px 18px;
+        }
+      }
+
+      /* ===== חדשות קומפקטיות וקריאות ===== */
+      #news {
+        padding-block: 54px;
+      }
+      #news .sec-head {
+        margin-bottom: 22px;
+      }
+      .news {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 14px;
+      }
+      .news .item {
+        grid-template-columns: 148px minmax(0, 1fr);
+        gap: 0;
+        min-height: 164px;
+        box-shadow: 0 10px 24px rgba(0, 0, 0, 0.18);
+      }
+      .news .item.no-img {
+        grid-template-columns: 1fr;
+      }
+      .news .item .thumb {
+        min-height: 164px;
+        height: 100%;
+        width: 100%;
+        min-width: 0;
+        overflow: hidden;
+      }
+      .news .item .body {
+        min-width: 0;
+        padding: 16px 18px;
+      }
+      .news .item .top {
+        gap: 7px;
+        margin-bottom: 7px;
+      }
+      .news .item .tag {
+        padding: 3px 9px;
+        font-size: 10px;
+      }
+      .news .item .when {
+        font-size: 11px;
+      }
+      .news .item h3 {
+        font-size: 18px;
+        line-height: 1.3;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+      }
+      .news .item p {
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        -webkit-line-clamp: 2;
+        overflow: hidden;
+        margin-top: 7px;
+        font-size: 13px;
+        line-height: 1.45;
+      }
+      .news .item .more {
+        margin-top: 8px;
+        font-size: 12px;
+      }
+      @media (max-width: 760px) {
+        #news {
+          padding-block: 48px;
+        }
+        .news {
+          grid-template-columns: 1fr;
+        }
+        .news .item,
+        .news .item.no-img {
+          grid-template-columns: 132px minmax(0, 1fr);
+        }
+        .news .item.no-img {
+          grid-template-columns: 1fr;
+        }
+        .news .item .thumb {
+          min-height: 148px;
+        }
+      }
+      @media (max-width: 420px) {
+        .news .item,
+        .news .item.no-img {
+          grid-template-columns: 112px minmax(0, 1fr);
+          min-height: 136px;
+        }
+        .news .item.no-img {
+          grid-template-columns: 1fr;
+        }
+        .news .item .thumb {
+          min-height: 136px;
+        }
+        .news .item .body {
+          padding: 13px 14px;
+        }
+        .news .item h3 {
+          font-size: 16px;
+        }
+        .news .item p {
+          font-size: 12px;
         }
       }
     </style>
@@ -1821,7 +2302,12 @@
           <svg class="crest-sm"><use href="#crest" /></svg>
           <span data-team-name>המאוחדת</span>
         </a>
-        <nav class="nav">
+        <button class="menu-toggle" id="menuToggle" aria-label="פתיחת תפריט" aria-expanded="false">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round">
+            <path d="M4 6h16M4 12h16M4 18h16" />
+          </svg>
+        </button>
+        <nav class="nav" id="siteNav">
           <a href="#news">חדשות</a>
           <a href="#squad">הסגל</a>
           <a href="#staff">הנהלה</a>
@@ -1829,7 +2315,7 @@
           <a href="#podcast">פודקאסט</a>
           <a href="#media">מדיה</a>
           <a href="#gallery">גלריה</a>
-          <a href="#follow" class="on">עקבו אחרינו</a>
+          <a href="#follow">עקבו אחרינו</a>
         </nav>
       </div>
     </header>
@@ -1839,7 +2325,7 @@
       <div class="hero">
         <div class="wrap">
           <svg class="crest-lg"><use href="#crest" /></svg>
-          <div>
+          <div class="hero-copy">
             <p class="kicker">
               ⚽ עונת 2026/27 · בישורת האחרונה לפני פתיחת הליגה
             </p>
@@ -1850,11 +2336,48 @@
             </p>
             <div class="hero-cta">
               <a class="btn btn-main" href="#squad">הכירו את הסגל ←</a>
-              <a class="btn btn-ghost" href="#podcast">🎙️ לפודקאסט</a>
+              <a class="btn btn-ghost" href="#media">🎬 לרגעים מהקבוצה</a>
             </div>
           </div>
+          <aside class="hero-side" aria-label="מידע מהיר">
+            <div class="next-match">
+              <span class="panel-label">המשחק הבא</span>
+              <strong id="nextMatchOpponent">פרטים בקרוב</strong>
+              <div class="next-match-meta">
+                <span id="nextMatchDate">📅 מועד המשחק יתעדכן כאן</span>
+                <span id="nextMatchVenue">📍 מיקום המשחק יתעדכן כאן</span>
+                <div class="next-match-countdown" id="nextMatchCountdown" aria-label="ספירה לאחור למשחק הבא">
+                  <span class="countdown-unit">
+                    <b class="countdown-value" data-countdown="days">—</b>
+                    <span class="countdown-label">ימים</span>
+                  </span>
+                  <span class="countdown-unit">
+                    <b class="countdown-value" data-countdown="hours">—</b>
+                    <span class="countdown-label">שעות</span>
+                  </span>
+                  <span class="countdown-unit">
+                    <b class="countdown-value" data-countdown="minutes">—</b>
+                    <span class="countdown-label">דקות</span>
+                  </span>
+                  <span class="countdown-unit">
+                    <b class="countdown-value" data-countdown="seconds">—</b>
+                    <span class="countdown-label">שניות</span>
+                  </span>
+                </div>
+              </div>
+              <a class="btn btn-ghost" href="#follow">עקבו לעדכונים</a>
+            </div>
+            <div class="hero-side-note">
+              <svg><use href="#crest" /></svg>
+              <div><b>המאוחדת</b>קבוצה, חברים וכל הרגעים שבדרך.</div>
+            </div>
+          </aside>
         </div>
-        <div class="wrap">
+        <div class="wrap hero-dashboard">
+          <div class="dashboard-heading">
+            <span>סגל עונת 2026/27</span>
+            <b>המספרים שמאחורי הקבוצה</b>
+          </div>
           <div class="stats" id="statsRow"></div>
         </div>
       </div>
@@ -1968,6 +2491,10 @@
               או פתחו אותו במסך מלא.
             </p>
           </div>
+          <div class="media-toolbar">
+            <span class="media-toolbar-label">הסיפורים של הקבוצה, בפריים אחד</span>
+            <div class="media-filters" id="mediaFilters" aria-label="סינון סרטונים"></div>
+          </div>
           <div class="media-grid" id="mediaGrid"></div>
         </div>
       </section>
@@ -2052,6 +2579,7 @@
           <button class="chip" data-form="news">עדכון חדשות</button>
           <button class="chip" data-form="pod">פרק פודקאסט</button>
           <button class="chip" data-form="media">סרטון למדיה</button>
+          <button class="chip" data-form="media-edit">עריכת סרטון</button>
         </div>
 
         <div class="sheet-body">
@@ -2193,6 +2721,16 @@
                 maxlength="180"
               />
             </div>
+            <div class="field">
+              <label for="mCategory">סוג הסרטון</label>
+              <select id="mCategory">
+                <option value="משחק">משחק</option>
+                <option value="ראיון">ראיון</option>
+                <option value="מאחורי הקלעים">מאחורי הקלעים</option>
+                <option value="רגע מהקבוצה">רגע מהקבוצה</option>
+                <option value="שיר שחקן">שיר שחקן</option>
+              </select>
+            </div>
             <div class="drop" id="dropM">
               <b>גררו לכאן סרטון</b>
               <span>או לחצו כדי לבחור מהמכשיר · MP4, MOV או WebM</span>
@@ -2203,6 +2741,43 @@
               העלאת הסרטון
             </button>
             <div id="mediaNote"></div>
+          </div>
+
+          <!-- עריכת פרטי סרטון קיים -->
+          <div class="form-pane" id="form-media-edit">
+            <input id="editMediaId" type="hidden" />
+            <div class="field">
+              <label for="editMediaTitle">כותרת הסרטון</label>
+              <input
+                id="editMediaTitle"
+                type="text"
+                placeholder="למשל: שער הניצחון בדרבי"
+                maxlength="90"
+              />
+            </div>
+            <div class="field">
+              <label for="editMediaParticipants">משתתפים</label>
+              <input
+                id="editMediaParticipants"
+                type="text"
+                placeholder="למשל: אייל, דביר ואיתי"
+                maxlength="180"
+              />
+            </div>
+            <div class="field">
+              <label for="editMediaCategory">תגית הסרטון</label>
+              <select id="editMediaCategory">
+                <option value="משחק">משחק</option>
+                <option value="ראיון">ראיון</option>
+                <option value="מאחורי הקלעים">מאחורי הקלעים</option>
+                <option value="רגע מהקבוצה">רגע מהקבוצה</option>
+                <option value="שיר שחקן">שיר שחקן</option>
+              </select>
+            </div>
+            <button class="btn btn-main btn-wide" id="editMediaSend">
+              שמירת השינויים
+            </button>
+            <div id="editMediaNote"></div>
           </div>
 
           <!-- תוצאות בדיקת החיבור -->
@@ -2254,6 +2829,7 @@
         </div>
       </div>
     </div>
+    <div class="toast-region" id="toastRegion" aria-live="polite"></div>
 
     <script>
       /* =====================================================================
@@ -2297,6 +2873,13 @@
      { value:'96',   label:'שערים העונה' }
    ];                                                              */
       const STATS = [];
+
+      /* ---- המשחק הבא ----
+   המשחק נקבע אוטומטית ליום שישי בשעה 15:00 ומתחדש בכל שבוע. */
+      const NEXT_MATCH = {
+        opponent: "MEUHEDET FC",
+        venue: "תיכון אורט",
+      };
 
       /* ---- חדשות ----
    העדכון החדש ביותר נכנס למעלה ברשימה.
@@ -2619,6 +3202,41 @@
       document.title = TEAM.name + " — קבוצת הכדורגל השכונתית";
       $("#igLink").href = TEAM.instagram;
       $("#year").textContent = new Date().getFullYear();
+      if (NEXT_MATCH.opponent) {
+        $("#nextMatchOpponent").textContent = NEXT_MATCH.opponent;
+        $("#nextMatchDate").textContent = "📅 יום שישי · 15:00";
+        $("#nextMatchVenue").textContent = `📍 ${NEXT_MATCH.venue}`;
+      }
+
+      function nextFridayAtThree(now = new Date()) {
+        const target = new Date(now);
+        const daysUntilFriday = (5 - target.getDay() + 7) % 7;
+        target.setDate(target.getDate() + daysUntilFriday);
+        target.setHours(15, 0, 0, 0);
+        if (target <= now) target.setDate(target.getDate() + 7);
+        return target;
+      }
+
+      function updateMatchCountdown() {
+        if (!NEXT_MATCH.opponent) return;
+        const now = new Date();
+        const target = nextFridayAtThree(now);
+        const remaining = Math.max(0, target - now);
+        const totalSeconds = Math.floor(remaining / 1000);
+        const days = Math.floor(totalSeconds / 86400);
+        const hours = Math.floor((totalSeconds % 86400) / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const seconds = totalSeconds % 60;
+        const pad = (value) => String(value).padStart(2, "0");
+        $("#nextMatchDate").textContent = `📅 יום שישי · 15:00 · ${target.toLocaleDateString("he-IL", { day: "numeric", month: "long" })}`;
+        $("[data-countdown='days']").textContent = days;
+        $("[data-countdown='hours']").textContent = pad(hours);
+        $("[data-countdown='minutes']").textContent = pad(minutes);
+        $("[data-countdown='seconds']").textContent = pad(seconds);
+      }
+
+      updateMatchCountdown();
+      setInterval(updateMatchCountdown, 1000);
 
       if (TEAM.logo) {
         $$("svg.crest-sm, svg.crest-lg").forEach((svg) => {
@@ -2635,23 +3253,36 @@
       const CATS = ["שוער", "הגנה", "קישור", "התקפה"];
 
       function autoStats() {
-        const byCat = CATS.map((c) => ({
+        const byCat = CATS.filter((c) => c !== "שוער").map((c) => ({
           value: String(SQUAD.filter((p) => p.cat === c).length),
           label: c,
-        })).filter((x) => x.value !== "0");
+          icon: { הגנה: "🛡️", קישור: "◈", התקפה: "⚡" }[c],
+        }));
         return [
-          { value: String(SQUAD.length), label: "שחקנים בסגל" },
+          { value: String(SQUAD.length), label: "שחקנים בסגל", icon: "👥" },
           ...byCat,
-        ].slice(0, 4);
+          ...(SQUAD.some((p) => p.status)
+            ? [
+                {
+                  value: String(SQUAD.filter((p) => p.status).length),
+                  label: "פצועים",
+                  icon: "✚",
+                },
+              ]
+            : []),
+        ];
       }
 
       const statsData = STATS.length ? STATS : autoStats();
       $("#statsRow").style.gridTemplateColumns =
-        `repeat(${Math.min(statsData.length, 4)},1fr)`;
+        `repeat(${Math.min(statsData.length, 6)},minmax(0,1fr))`;
       $("#statsRow").innerHTML = statsData
         .map(
           (s) =>
-            `<div class="stat"><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>`,
+            `<div class="stat">
+              <span class="stat-icon" aria-hidden="true">${esc(s.icon || "•")}</span>
+              <div><b>${esc(s.value)}</b><span>${esc(s.label)}</span></div>
+            </div>`,
         )
         .join("");
 
@@ -3039,13 +3670,29 @@
 
       /* ===================== מדיה ===================== */
       let extraMedia = [];
+      let activeMediaCategory = "הכל";
+      let openMediaEditor = null;
 
       function allMedia() {
         return [...extraMedia, ...MEDIA];
       }
 
+      function renderMediaFilters(items) {
+        const categories = [
+          "הכל",
+          ...new Set(items.map((item) => item.category).filter(Boolean)),
+        ];
+        $("#mediaFilters").innerHTML = categories
+          .map(
+            (category) =>
+              `<button class="chip${category === activeMediaCategory ? " on" : ""}" data-media-category="${esc(category)}">${esc(category)}</button>`,
+          )
+          .join("");
+      }
+
       function mediaEmpty() {
         $("#mediaGrid").classList.add("empty");
+        $("#mediaFilters").innerHTML = "";
         $("#mediaGrid").innerHTML = soonCard(
           "הסרטונים בדרך",
           CL.on
@@ -3059,19 +3706,25 @@
         if (!all.length) return mediaEmpty();
 
         $("#mediaGrid").classList.remove("empty");
+        if (activeMediaCategory !== "הכל" && !all.some((m) => m.category === activeMediaCategory))
+          activeMediaCategory = "הכל";
+        renderMediaFilters(all);
         $("#mediaGrid").innerHTML = all
           .map(
             (m, i) => `
-    <article class="media-card">
+    <article class="media-card${i === 0 ? " featured" : ""}${activeMediaCategory !== "הכל" && m.category !== activeMediaCategory ? " is-hidden" : ""}">
       <button class="media-poster" data-media-index="${i}" aria-label="צפייה: ${esc(m.title || "סרטון")}">
         <video src="${esc(m.src)}"${m.poster ? ` poster="${esc(m.poster)}"` : ""}
                muted playsinline preload="metadata"></video>
         <span class="media-play" aria-hidden="true">▶</span>
-        <span class="media-corner">▶ סרטון</span>
+        <span class="media-corner">${esc(m.category || "▶ סרטון")}</span>
       </button>
       <div class="media-info">
+        ${m.category ? `<span class="media-category">${esc(m.category)}</span>` : ""}
         <h3>${esc(m.title || "סרטון מהמאוחדת")}</h3>
         ${m.participants ? `<p>משתתפים: ${esc(m.participants)}</p>` : "<p>רגע מהחיים של הקבוצה</p>"}
+        ${m.date ? `<span class="media-date">${esc(m.date)}</span>` : ""}
+        ${CL.on && m.publicId ? `<button class="media-edit" type="button" data-edit-media="${esc(m.publicId)}">✎ עריכה</button>` : ""}
       </div>
     </article>`,
           )
@@ -3101,9 +3754,21 @@
       }
 
       $("#mediaGrid").addEventListener("click", (e) => {
+        const editButton = e.target.closest("[data-edit-media]");
+        if (editButton) {
+          e.preventDefault();
+          openMediaEditor?.(editButton.dataset.editMedia);
+          return;
+        }
         const button = e.target.closest("[data-media-index]");
         if (!button) return;
         openMediaViewer(allMedia()[+button.dataset.mediaIndex]);
+      });
+      $("#mediaFilters").addEventListener("click", (e) => {
+        const button = e.target.closest("[data-media-category]");
+        if (!button) return;
+        activeMediaCategory = button.dataset.mediaCategory;
+        renderMedia();
       });
       $(".media-viewer .x").addEventListener("click", closeMediaViewer);
       mediaViewer.addEventListener("click", (e) => {
@@ -3265,10 +3930,18 @@
           extraPods = pods;
           renderPodcast();
         }
-        const docs = mediaDocs.map((item) => ({
-          ...item,
-          publicId: item.publicId || "",
-        }));
+        const docsByVideo = new Map();
+        mediaDocs.forEach((item) => {
+          const normalized = { ...item, publicId: item.publicId || "" };
+          if (!normalized.publicId) {
+            docsByVideo.set(`doc-${docsByVideo.size}`, normalized);
+            return;
+          }
+          const previous = docsByVideo.get(normalized.publicId);
+          if (!previous || Number(normalized.updatedAt || 0) >= Number(previous.updatedAt || 0))
+            docsByVideo.set(normalized.publicId, normalized);
+        });
+        const docs = [...docsByVideo.values()];
         const known = new Set(
           docs.map((item) => item.publicId).filter(Boolean),
         );
@@ -3282,6 +3955,10 @@
             ),
             title: CL.ctx(asset, "title") || "סרטון מהמאוחדת",
             participants: CL.ctx(asset, "participants"),
+            category: CL.ctx(asset, "category"),
+            date: asset.created_at
+              ? new Date(asset.created_at).toLocaleDateString("he-IL")
+              : "",
             publicId: asset.public_id,
           }));
         extraMedia = [...docs, ...assets];
@@ -3316,6 +3993,19 @@
         .join("");
 
       const navLinks = $$(".nav a");
+      const menuToggle = $("#menuToggle");
+      const siteNav = $("#siteNav");
+      const closeMobileMenu = () => {
+        siteNav.classList.remove("open");
+        document.body.classList.remove("menu-open");
+        menuToggle?.setAttribute("aria-expanded", "false");
+      };
+      menuToggle?.addEventListener("click", () => {
+        const open = siteNav.classList.toggle("open");
+        document.body.classList.toggle("menu-open", open);
+        menuToggle.setAttribute("aria-expanded", String(open));
+      });
+      navLinks.forEach((link) => link.addEventListener("click", closeMobileMenu));
       const spy = new IntersectionObserver(
         (entries) => {
           entries.forEach((en) => {
@@ -3337,6 +4027,16 @@
         el.innerHTML = text
           ? `<div class="note ${kind}">${esc(text)}</div>`
           : "";
+      }
+
+      function showToast(text, kind = "") {
+        const region = $("#toastRegion");
+        if (!region) return;
+        const toast = document.createElement("div");
+        toast.className = `toast ${kind}`;
+        toast.textContent = text;
+        region.appendChild(toast);
+        setTimeout(() => toast.remove(), 4200);
       }
 
       /* מציג תמונה בתור בזמן ההעלאה, ומסמן הצלחה או כישלון */
@@ -3388,6 +4088,17 @@
           sheet.classList.add("on");
         };
         const closeSheet = () => sheet.classList.remove("on");
+
+        openMediaEditor = (publicId) => {
+          const item = allMedia().find((media) => media.publicId === publicId);
+          if (!item) return;
+          openSheet("media-edit");
+          $("#editMediaId").value = publicId;
+          $("#editMediaTitle").value = item.title || "";
+          $("#editMediaParticipants").value = item.participants || "";
+          $("#editMediaCategory").value = item.category || "משחק";
+          setNote($("#editMediaNote"), "אפשר לעדכן את הפרטים ולשמור בלי להעלות את הסרטון מחדש.");
+        };
 
         $("#fab").addEventListener("click", () => openSheet());
         $("#sheetX").addEventListener("click", closeSheet);
@@ -3446,6 +4157,7 @@
               `${good} תמונות עלו והן כבר בגלריה. אצל שאר הגולשים הן יופיעו תוך דקה.`,
               "ok",
             );
+            showToast(`${good} תמונות נוספו לגלריה 📸`);
             $("#capInput").value = "";
           }
         }
@@ -3567,6 +4279,43 @@
           return CL.upload(file, { tags: [tag], type: "raw" });
         }
 
+        $("#editMediaSend").addEventListener("click", async () => {
+          const publicId = $("#editMediaId").value;
+          const current = allMedia().find((media) => media.publicId === publicId);
+          const title = $("#editMediaTitle").value.trim();
+          const participants = $("#editMediaParticipants").value.trim();
+          const category = $("#editMediaCategory").value;
+          if (!current) return setNote($("#editMediaNote"), "לא נמצא הסרטון לעריכה.", "bad");
+          if (!title) return setNote($("#editMediaNote"), "צריך כותרת לסרטון.", "bad");
+          if (!participants)
+            return setNote($("#editMediaNote"), "צריך למלא את שמות המשתתפים.", "bad");
+
+          const btn = $("#editMediaSend");
+          btn.disabled = true;
+          setNote($("#editMediaNote"), "שומר את השינויים…");
+          try {
+            const updated = {
+              ...current,
+              title,
+              participants,
+              category,
+              updatedAt: Date.now(),
+            };
+            await saveDoc("media", updated);
+            extraMedia = extraMedia.map((media) =>
+              media.publicId === publicId ? updated : media,
+            );
+            renderMedia();
+            setNote($("#editMediaNote"), "פרטי הסרטון עודכנו בהצלחה.", "ok");
+            showToast("פרטי הסרטון עודכנו ✎");
+            closeSheet();
+          } catch (err) {
+            setNote($("#editMediaNote"), err.message, "bad");
+          } finally {
+            btn.disabled = false;
+          }
+        });
+
         const today = () =>
           new Date().toLocaleDateString("he-IL", {
             day: "numeric",
@@ -3604,6 +4353,7 @@
             extraNews = [doc, ...extraNews];
             renderNews();
             setNote($("#newsNote"), "העדכון פורסם והוא כבר בראש העמוד.", "ok");
+            showToast("העדכון פורסם בהצלחה 📰");
             ["#nTitle", "#nText"].forEach((sel) => ($(sel).value = ""));
             $("#nImg").value = "";
           } catch (err) {
@@ -3635,6 +4385,7 @@
             extraPods = [doc, ...extraPods];
             renderPodcast();
             setNote($("#podNote"), "הפרק נוסף לאתר.", "ok");
+            showToast("הפרק נוסף בהצלחה 🎙️");
             ["#pNum", "#pTitle", "#pDesc", "#pEmbed"].forEach(
               (sel) => ($(sel).value = ""),
             );
@@ -3712,7 +4463,11 @@
               type: "video",
               tags: ["media"],
               publicId: `media-${Date.now()}`,
-              context: { title, participants },
+              context: {
+                title,
+                participants,
+                category: $("#mCategory").value,
+              },
             });
             const doc = {
               src: CL.video(res),
@@ -3722,6 +4477,8 @@
               ),
               title,
               participants,
+              category: $("#mCategory").value,
+              date: today(),
               publicId: res.public_id,
             };
             await saveDoc("media", doc);
@@ -3732,6 +4489,7 @@
               "הסרטון נוסף למדיה והוא כבר מופיע באתר.",
               "ok",
             );
+            showToast("הסרטון נוסף בהצלחה 🎬");
             ["#mTitle", "#mParticipants"].forEach((sel) => ($(sel).value = ""));
             queueM.innerHTML = "";
             selectedMediaFile = null;
