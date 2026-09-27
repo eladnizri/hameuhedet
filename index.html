@@ -335,6 +335,45 @@ tbody tr.us td:first-child{box-shadow:inset 3px 0 0 var(--team-1)}
   position:absolute;inset-inline:0;bottom:0;padding:22px 14px 12px;font-size:13px;font-weight:700;
   background:linear-gradient(transparent,rgba(0,0,0,.85));
 }
+
+/* ===== מדיה ===== */
+.media-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.media-grid.empty{display:block}
+.media-card{
+  overflow:hidden;background:linear-gradient(165deg,var(--card),var(--card-2));
+  border:1px solid var(--line);border-radius:var(--radius);transition:.25s;
+}
+.media-card:hover{transform:translateY(-4px);border-color:color-mix(in srgb,var(--team-1) 55%,transparent);box-shadow:var(--shadow)}
+.media-poster{
+  position:relative;display:block;width:100%;aspect-ratio:4/5;padding:0;border:0;overflow:hidden;
+  background:
+    radial-gradient(110% 80% at 30% 0%,color-mix(in srgb,var(--team-1) 18%,transparent),transparent 70%),
+    linear-gradient(150deg,#2a2020,#15100f);cursor:pointer;
+}
+.media-poster video{width:100%;height:100%;object-fit:cover;display:block;transition:.4s}
+.media-card:hover .media-poster video{transform:scale(1.04)}
+.media-poster::after{content:'';position:absolute;inset:0;background:linear-gradient(transparent 60%,rgba(0,0,0,.72))}
+.media-play{
+  position:absolute;z-index:1;inset:50% auto auto 50%;transform:translate(-50%,-50%);
+  width:58px;height:58px;border-radius:50%;display:grid;place-items:center;
+  background:rgba(8,6,6,.72);border:1px solid rgba(255,255,255,.34);color:#fff;
+  font-size:24px;padding-inline-start:3px;backdrop-filter:blur(5px);transition:.2s;
+}
+.media-card:hover .media-play{background:var(--team-1);color:var(--ink);transform:translate(-50%,-50%) scale(1.08)}
+.media-corner{position:absolute;z-index:1;inset-block-start:12px;inset-inline-end:12px;padding:5px 9px;border-radius:999px;background:rgba(0,0,0,.62);color:#fff;font-size:12px;font-weight:800}
+.media-info{padding:15px 16px 17px}
+.media-info h3{margin:0;font-size:17px;font-weight:900;line-height:1.3}
+.media-info p{margin:7px 0 0;color:var(--txt-dim);font-size:13px;line-height:1.5}
+.media-viewer{position:fixed;inset:0;z-index:110;display:none;background:rgba(4,3,3,.97);padding:24px}
+.media-viewer.on{display:grid;place-items:center}
+.media-viewer-inner{width:min(100%,1120px);height:min(100%,800px);display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:24px;align-items:center}
+.media-viewer video{width:100%;height:100%;max-height:calc(100vh - 48px);object-fit:contain;border-radius:16px;background:#000}
+.media-viewer-info{padding:22px;border:1px solid var(--line);border-radius:18px;background:var(--card);align-self:center}
+.media-viewer-info h2{margin:0;font-size:25px;font-weight:900;line-height:1.25}
+.media-viewer-info p{margin:12px 0 20px;color:var(--txt-dim);line-height:1.6}
+.media-viewer .x{position:absolute;top:20px;inset-inline-end:20px;width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,.1);border:0;color:#fff;font-size:22px;cursor:pointer}
+.media-viewer .fullscreen{width:100%;justify-content:center}
+
 .ig{
   margin-top:36px;display:grid;grid-template-columns:1fr;gap:20px;
   background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);padding:2px;border-radius:22px;
@@ -460,6 +499,13 @@ tbody tr.us td:first-child{box-shadow:inset 3px 0 0 var(--team-1)}
   position:absolute;top:20px;inset-inline-end:20px;width:44px;height:44px;border-radius:50%;
   background:rgba(255,255,255,.1);border:0;color:#fff;font-size:22px;cursor:pointer;
 }
+@media(max-width:760px){
+  .media-viewer{padding:14px}
+  .media-viewer-inner{height:auto;grid-template-columns:1fr;gap:14px}
+  .media-viewer video{height:min(68vh,620px);max-height:none}
+  .media-viewer-info{padding:16px}
+  .media-viewer-info h2{font-size:20px}
+}
 
 /* ===== פוטר ===== */
 footer{background:#070505;padding:50px 0 34px;border-top:1px solid var(--line)}
@@ -501,6 +547,10 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
   .pod h3{font-size:16px}
   .pod-play{width:36px;height:36px}
   .gallery{grid-template-columns:repeat(2,1fr);gap:10px}
+  .media-grid{grid-template-columns:repeat(2,1fr);gap:10px}
+  .media-info{padding:11px 12px 13px}
+  .media-info h3{font-size:14px}
+  .media-info p{font-size:11.5px}
   .scorer{grid-template-columns:34px 1fr auto;gap:10px;padding:12px 14px}
   .ig-inner{padding:24px 18px}
 }
@@ -575,6 +625,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
       <a href="#staff">הנהלה</a>
       <a href="#table">טבלה</a>
       <a href="#podcast">פודקאסט</a>
+      <a href="#media">מדיה</a>
       <a href="#gallery">גלריה</a>
       <a href="#follow" class="on">עקבו אחרינו</a>
     </nav>
@@ -681,6 +732,18 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
     </div>
   </section>
 
+  <!-- ===== מדיה ===== -->
+  <section id="media">
+    <div class="wrap">
+      <div class="sec-head">
+        <p class="eyebrow">🎬 מדיה</p>
+        <h2>רגעים מהמאוחדת</h2>
+        <p>סרטונים מהמשחקים, מהחדר ומהחיים של הקבוצה. לחצו על סרטון לצפייה, או פתחו אותו במסך מלא.</p>
+      </div>
+      <div class="media-grid" id="mediaGrid"></div>
+    </div>
+  </section>
+
   <!-- ===== גלריה + אינסטגרם ===== -->
   <section id="gallery">
     <div class="wrap">
@@ -740,6 +803,7 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
       <button class="chip" data-form="player">תמונת אדם</button>
       <button class="chip" data-form="news">עדכון חדשות</button>
       <button class="chip" data-form="pod">פרק פודקאסט</button>
+      <button class="chip" data-form="media">סרטון למדיה</button>
     </div>
 
     <div class="sheet-body">
@@ -825,6 +889,26 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
         <div id="podNote"></div>
       </div>
 
+      <!-- סרטון למדיה -->
+      <div class="form-pane" id="form-media">
+        <div class="field">
+          <label for="mTitle">כותרת הסרטון</label>
+          <input id="mTitle" type="text" placeholder="למשל: שער הניצחון בדרבי" maxlength="90">
+        </div>
+        <div class="field">
+          <label for="mParticipants">משתתפים</label>
+          <input id="mParticipants" type="text" placeholder="למשל: אייל, דביר ואיתי" maxlength="180">
+        </div>
+        <div class="drop" id="dropM">
+          <b>גררו לכאן סרטון</b>
+          <span>או לחצו כדי לבחור מהמכשיר · MP4, MOV או WebM</span>
+        </div>
+        <input type="file" id="dropMInput" accept="video/*" hidden>
+        <div class="queue" id="queueM"></div>
+        <button class="btn btn-main btn-wide" id="mSend" disabled>העלאת הסרטון</button>
+        <div id="mediaNote"></div>
+      </div>
+
       <!-- תוצאות בדיקת החיבור -->
       <div class="form-pane" id="form-diag">
         <p style="margin:0 0 16px;color:var(--txt-dim);line-height:1.6;font-size:14px">
@@ -843,6 +927,18 @@ footer .wrap{display:grid;gap:26px;grid-template-columns:1fr auto;align-items:ce
 <div class="lightbox" id="lightbox">
   <button class="x" aria-label="סגירה">✕</button>
   <img alt="">
+</div>
+
+<div class="media-viewer" id="mediaViewer" aria-modal="true" role="dialog" aria-label="צפייה בסרטון">
+  <button class="x" aria-label="סגירת הסרטון">✕</button>
+  <div class="media-viewer-inner">
+    <video id="mediaViewerVideo" controls playsinline></video>
+    <div class="media-viewer-info">
+      <h2 id="mediaViewerTitle"></h2>
+      <p id="mediaViewerParticipants"></p>
+      <button class="btn btn-main fullscreen" id="mediaFullscreen">⛶ פתיחה במסך מלא</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -983,6 +1079,15 @@ const LEAGUE = [
    פרק בלי embed יוצג עם הכותרת והתיאור, בלי נגן.                     */
 const PODCASTS = [];
 
+/* ---- מדיה ----
+  סרטונים שמועלים מהאתר נשמרים אוטומטית בענן. אפשר גם להוסיף כאן
+  סרטון שכבר יושב בריפו או בכתובת ציבורית:
+
+  { src:'videos/derby.mp4', title:'שער הניצחון בדרבי', participants:'אייל ודביר' }
+
+  src יכול להיות נתיב יחסי, כתובת https, או כתובת Cloudinary.              */
+const MEDIA = [];
+
 /* ---- גלריה ----
 
    הדרך הרגילה להוסיף תמונות היא הכפתור "הוספת תוכן" שבאתר עצמו —
@@ -1063,6 +1168,9 @@ const CL = {
 
   img(r, w = 1400){
     return this.res('image', `upload/f_auto,q_auto,w_${w}/v${r.version}/${r.public_id}.${r.format}`);
+  },
+  video(r, w = 1200){
+    return this.res('video', `upload/f_auto,q_auto,w_${w}/v${r.version}/${r.public_id}.${r.format}`);
   },
   raw(r){
     /* בקובץ raw הסיומת היא חלק מהכתובת, אבל לא תמיד חלק מה-public_id */
@@ -1421,6 +1529,72 @@ $('#podList').addEventListener('click', e => {
   if (p?.embed) loadSoundCloudEmbed(embedBox, p.embed);
 });
 
+/* ===================== מדיה ===================== */
+let extraMedia = [];
+
+function allMedia(){ return [...extraMedia, ...MEDIA]; }
+
+function mediaEmpty(){
+  $('#mediaGrid').classList.add('empty');
+  $('#mediaGrid').innerHTML = soonCard('הסרטונים בדרך',
+    CL.on ? 'לוחצים על "הוספת תוכן" ומעלים את הרגעים הכי טובים של הקבוצה.'
+          : 'סרטונים מהמשחקים ומהחיים של הקבוצה יעלו לכאן בקרוב.');
+}
+
+function renderMedia(){
+  const all = allMedia();
+  if (!all.length) return mediaEmpty();
+
+  $('#mediaGrid').classList.remove('empty');
+  $('#mediaGrid').innerHTML = all.map((m, i) => `
+    <article class="media-card">
+      <button class="media-poster" data-media-index="${i}" aria-label="צפייה: ${esc(m.title || 'סרטון')}">
+        <video src="${esc(m.src)}"${m.poster ? ` poster="${esc(m.poster)}"` : ''}
+               muted playsinline preload="metadata"></video>
+        <span class="media-play" aria-hidden="true">▶</span>
+        <span class="media-corner">▶ סרטון</span>
+      </button>
+      <div class="media-info">
+        <h3>${esc(m.title || 'סרטון מהמאוחדת')}</h3>
+        ${m.participants ? `<p>משתתפים: ${esc(m.participants)}</p>` : '<p>רגע מהחיים של הקבוצה</p>'}
+      </div>
+    </article>`).join('');
+}
+
+const mediaViewer = $('#mediaViewer');
+const mediaViewerVideo = $('#mediaViewerVideo');
+
+function closeMediaViewer(){
+  mediaViewerVideo.pause();
+  mediaViewerVideo.removeAttribute('src');
+  mediaViewerVideo.load();
+  mediaViewer.classList.remove('on');
+}
+
+function openMediaViewer(item){
+  if (!item?.src) return;
+  $('#mediaViewerTitle').textContent = item.title || 'סרטון מהמאוחדת';
+  $('#mediaViewerParticipants').textContent = item.participants
+    ? `משתתפים: ${item.participants}` : 'רגע מהחיים של הקבוצה';
+  mediaViewerVideo.src = item.src;
+  if (item.poster) mediaViewerVideo.poster = item.poster;
+  mediaViewer.classList.add('on');
+  mediaViewerVideo.play().catch(() => {});
+}
+
+$('#mediaGrid').addEventListener('click', e => {
+  const button = e.target.closest('[data-media-index]');
+  if (!button) return;
+  openMediaViewer(allMedia()[+button.dataset.mediaIndex]);
+});
+$('.media-viewer .x').addEventListener('click', closeMediaViewer);
+mediaViewer.addEventListener('click', e => { if (e.target === mediaViewer) closeMediaViewer(); });
+$('#mediaFullscreen').addEventListener('click', () => {
+  if (mediaViewerVideo.requestFullscreen) mediaViewerVideo.requestFullscreen();
+  else if (mediaViewerVideo.webkitEnterFullscreen) mediaViewerVideo.webkitEnterFullscreen();
+});
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeMediaViewer(); });
+
 /* ===================== גלריה ===================== */
 const EXTS = ['jpg', 'jpeg', 'png', 'webp'];
 let shots = [];
@@ -1528,9 +1702,24 @@ async function loadDocs(tag){
 
 async function loadCloudContent(){
   if (!CL.on) return;
-  const [news, pods] = await Promise.all([loadDocs('news'), loadDocs('podcast')]);
+  const [news, pods, mediaDocs, mediaAssets] = await Promise.all([
+    loadDocs('news'), loadDocs('podcast'), loadDocs('media'), CL.list('media', 'video')
+  ]);
   if (news.length){ extraNews = news; renderNews(); }
   if (pods.length){ extraPods = pods; renderPodcast(); }
+  const docs = mediaDocs.map(item => ({ ...item, publicId: item.publicId || '' }));
+  const known = new Set(docs.map(item => item.publicId).filter(Boolean));
+  const assets = mediaAssets
+    .filter(asset => !known.has(asset.public_id))
+    .map(asset => ({
+      src: CL.video(asset),
+      poster: CL.res('video', `upload/so_0,w_900,f_jpg/v${asset.version}/${asset.public_id}.jpg`),
+      title: CL.ctx(asset, 'title') || 'סרטון מהמאוחדת',
+      participants: CL.ctx(asset, 'participants'),
+      publicId: asset.public_id
+    }));
+  extraMedia = [...docs, ...assets];
+  renderMedia();
   loadPeoplePhotos();
 }
 
@@ -1780,6 +1969,63 @@ if (CL.on){
       setNote($('#podNote'), err.message, 'bad');
     } finally { btn.disabled = false; }
   });
+
+  /* ---- סרטון למדיה ---- */
+  let selectedMediaFile = null;
+  const dropM = $('#dropM'), dropMInput = $('#dropMInput'), queueM = $('#queueM'), mSend = $('#mSend');
+
+  function chooseMediaFile(file){
+    if (!file || !file.type.startsWith('video/')){
+      return setNote($('#mediaNote'), 'אפשר להעלות קובץ סרטון בלבד.', 'bad');
+    }
+    selectedMediaFile = file;
+    queueM.innerHTML = '';
+    const tile = document.createElement('figure');
+    tile.innerHTML = `<video muted playsinline></video><div class="state ok">✓</div>`;
+    $('video', tile).src = URL.createObjectURL(file);
+    queueM.appendChild(tile);
+    mSend.disabled = false;
+    setNote($('#mediaNote'), 'הסרטון מוכן להעלאה.');
+  }
+
+  dropM.addEventListener('click', () => dropMInput.click());
+  dropMInput.addEventListener('change', () => { chooseMediaFile(dropMInput.files[0]); dropMInput.value = ''; });
+  ['dragenter','dragover'].forEach(ev =>
+    dropM.addEventListener(ev, e => { e.preventDefault(); dropM.classList.add('over'); }));
+  ['dragleave','drop'].forEach(ev =>
+    dropM.addEventListener(ev, e => { e.preventDefault(); dropM.classList.remove('over'); }));
+  dropM.addEventListener('drop', e => chooseMediaFile(e.dataTransfer.files[0]));
+
+  mSend.addEventListener('click', async () => {
+    const title = $('#mTitle').value.trim();
+    const participants = $('#mParticipants').value.trim();
+    if (!title) return setNote($('#mediaNote'), 'צריך כותרת לסרטון.', 'bad');
+    if (!participants) return setNote($('#mediaNote'), 'צריך למלא את שמות המשתתפים.', 'bad');
+    if (!selectedMediaFile) return setNote($('#mediaNote'), 'בחרו סרטון לפני ההעלאה.', 'bad');
+
+    mSend.disabled = true;
+    setNote($('#mediaNote'), 'מעלה את הסרטון… זה יכול לקחת קצת זמן.');
+    try {
+      const res = await CL.upload(selectedMediaFile, {
+        type:'video', tags:['media'], publicId:`media-${Date.now()}`,
+        context:{ title, participants }
+      });
+      const doc = {
+        src: CL.video(res),
+        poster: CL.res('video', `upload/so_0,w_900,f_jpg/v${res.version}/${res.public_id}.jpg`),
+        title, participants, publicId: res.public_id
+      };
+      await saveDoc('media', doc);
+      extraMedia = [doc, ...extraMedia];
+      renderMedia();
+      setNote($('#mediaNote'), 'הסרטון נוסף למדיה והוא כבר מופיע באתר.', 'ok');
+      ['#mTitle','#mParticipants'].forEach(sel => $(sel).value = '');
+      queueM.innerHTML = '';
+      selectedMediaFile = null;
+    } catch (err){
+      setNote($('#mediaNote'), err.message, 'bad');
+    } finally { mSend.disabled = !selectedMediaFile; }
+  });
 }
 
 /* ===================== בדיקת חיבור =====================
@@ -1896,6 +2142,7 @@ renderNews();
 renderSquad();
 renderStaff();
 renderPodcast();
+renderMedia();
 loadGallery();
 loadCloudContent();
 </script>
