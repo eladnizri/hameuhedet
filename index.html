@@ -2453,6 +2453,31 @@
       .lock-field .lock-extra.on {
         display: grid;
       }
+      .shot.shot-locked {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: default;
+        padding: 8px;
+      }
+      .shot-locked .locked-box {
+        padding: 14px 10px;
+        border: none;
+        background: transparent;
+      }
+      .shot-locked .locked-box .ico {
+        font-size: 22px;
+        margin-bottom: 4px;
+      }
+      .shot-locked .locked-box h4 {
+        font-size: 13px;
+      }
+      .shot-locked .locked-box p {
+        font-size: 11px;
+      }
+      .shot-locked .lock-toggle {
+        margin-top: 8px;
+      }
     </style>
   </head>
   <body>
@@ -3645,10 +3670,52 @@
         }
       }
 
-      /* פריט נעול = מסומן locked, ואין unlockAt שכבר עבר, ואין פתיחה גורפת של האתר */
-      function isItemLocked(item) {
-        if (!item?.locked) return false;
-        if (item.unlockAt && Date.now() >= new Date(item.unlockAt).getTime())
+      /* ==== שכבת נעילה על-גבי תוכן קיים ====
+   כל פריט (חדשות, פודקאסט, מדיה, גלריה) מזוהה במפתח טבעי משלו —
+   כותרת+תאריך לחדשות/פודקאסט, publicId לסרטון, כתובת התמונה לגלריה.
+   נעילה/פתיחה של פריט (גם כזה שכבר פורסם, כולל תוכן שהיה מקובע
+   בקובץ מלכתחילה) שומרת מסמך JSON קטן עם המפתח הזה — בלי לגעת
+   בפריט המקורי בכלל. כך אפשר לנעול כל תוכן קיים מהאתר, ללא צורך
+   לפרסם אותו מחדש. */
+      const lockOverlay = new Map();
+      const lockDocsPromise = CL.on ? loadDocs("lock") : Promise.resolve([]);
+
+      async function ensureLockOverlay() {
+        const docs = await lockDocsPromise;
+        docs.forEach((doc) => {
+          if (!doc.key) return;
+          const prev = lockOverlay.get(doc.key);
+          if (!prev || Number(doc.updatedAt || 0) >= Number(prev.updatedAt || 0))
+            lockOverlay.set(doc.key, doc);
+        });
+      }
+
+      const newsKey = (item) => `news:${item.title}|${item.date}`;
+      const podKey = (item) => `podcast:${item.title}|${item.date}`;
+      const mediaKey = (item) => `media:${item.publicId || item.src}`;
+      const galleryKey = (item) => `gallery:${item.publicId || item.src}`;
+
+      /* המצב האפקטיבי של פריט: מה ששמור בשכבת הנעילה גובר, ואם
+   אין שם כלום — נופלים חזרה לשדות locked/unlockAt/lockNote
+   שהוגדרו על הפריט עצמו (למשל פריט חדש שנוצר עם "לנעול" מסומן). */
+      function effectiveLock(item, key) {
+        const overlay = lockOverlay.get(key);
+        if (overlay) return overlay;
+        if (item?.locked)
+          return {
+            locked: true,
+            unlockAt: item.unlockAt,
+            lockNote: item.lockNote,
+          };
+        return { locked: false };
+      }
+
+      /* פריט נעול = המצב האפקטיבי נעול, ואין unlockAt שכבר עבר,
+   ואין פתיחה גורפת של האתר */
+      function isKeyLocked(item, key) {
+        const eff = effectiveLock(item, key);
+        if (!eff.locked) return false;
+        if (eff.unlockAt && Date.now() >= new Date(eff.unlockAt).getTime())
           return false;
         return !isSiteUnlocked();
       }
@@ -3664,9 +3731,9 @@
         });
       }
 
-      function lockedBox(item) {
-        const until = item.unlockAt ? formatUnlockAt(item.unlockAt) : "";
-        const note = item.lockNote || "לחצו כאן להזנת סיסמה";
+      function lockedBox(eff) {
+        const until = eff.unlockAt ? formatUnlockAt(eff.unlockAt) : "";
+        const note = eff.lockNote || "לחצו כאן להזנת סיסמה";
         return `
     <div class="locked-box" data-unlock-box>
       <div class="ico">🔒</div>
@@ -3678,6 +3745,8 @@
       function refreshLockedSections() {
         renderNews();
         renderPodcast();
+        renderMedia();
+        renderGallery();
         updateUnlockBtn();
       }
 
@@ -3725,38 +3794,27 @@
         return true;
       }
 
-      /* פריטי חדשות/פודקאסט שכבר נשמרו נשמרים כקובץ JSON חדש בכל פעם.
-   עדכון פריט (למשל שינוי נעילה) יוצר קובץ חדש עם אותו id — כאן
-   משאירים רק את הגרסה העדכנית ביותר לכל id. */
-      function dedupeById(docs) {
-        const seen = new Set();
-        const out = [];
-        docs.forEach((d) => {
-          if (!d.id) {
-            out.push(d);
-            return;
-          }
-          if (seen.has(d.id)) return;
-          seen.add(d.id);
-          out.push(d);
-        });
-        return out;
-      }
-
-      /* נעילה/פתיחה של פריט חדשות או פודקאסט שכבר פורסם מהאתר עצמו */
-      async function toggleItemLock(tag, id, list, setList, renderFn) {
-        const item = list.find((x) => x.id === id);
-        if (!item) return;
+      /* נעילה/פתיחה של פריט קיים לפי המפתח הטבעי שלו — עובד על כל
+   פריט, גם כזה שהיה כבר מקובע בקובץ או מפורסם מלפני התכונה הזו */
+      async function toggleLockByKey(key, currentlyLocked, renderFn) {
         if (!confirmLockPassword()) return;
-        const updated = { ...item, locked: !item.locked, updatedAt: Date.now() };
+        const doc = { key, locked: !currentlyLocked, updatedAt: Date.now() };
         try {
-          await saveDoc(tag, updated);
-          setList(list.map((x) => (x.id === id ? updated : x)));
+          await saveDoc("lock", doc);
+          lockOverlay.set(key, doc);
           renderFn();
-          showToast(updated.locked ? "התוכן ננעל 🔒" : "התוכן נפתח 🔓");
+          showToast(doc.locked ? "התוכן ננעל 🔒" : "התוכן נפתח 🔓");
         } catch (err) {
           alert(err.message);
         }
+      }
+
+      function lockToggleButton(key, locked, label) {
+        if (!CL.on) return "";
+        return `<button class="lock-toggle${locked ? " on" : ""}" type="button"
+                   data-lock-toggle="${esc(key)}">
+                   ${locked ? "🔓 ביטול נעילה" : label}
+                 </button>`;
       }
 
       /* ===================== חדשות ===================== */
@@ -3773,15 +3831,11 @@
         }
         $("#newsList").innerHTML = all
           .map((item) => {
-            const toggle =
-              item.id && CL.on
-                ? `<button class="lock-toggle${item.locked ? " on" : ""}" type="button"
-                     data-lock-toggle="news:${esc(item.id)}">
-                     ${item.locked ? "🔓 ביטול נעילה" : "🔒 נעילת התוכן"}
-                   </button>`
-                : "";
-            if (isItemLocked(item))
-              return `<article class="item no-img"><div class="body">${lockedBox(item)}${toggle}</div></article>`;
+            const key = newsKey(item);
+            const locked = isKeyLocked(item, key);
+            const toggle = lockToggleButton(key, locked, "🔒 נעילת התוכן");
+            if (locked)
+              return `<article class="item no-img"><div class="body">${lockedBox(effectiveLock(item, key))}${toggle}</div></article>`;
             return `
     <article class="item${item.image ? "" : " no-img"}">
       ${
@@ -3814,14 +3868,8 @@
           .forEach((btn) => {
             btn.addEventListener("click", (e) => {
               e.stopPropagation();
-              const id = btn.dataset.lockToggle.slice("news:".length);
-              toggleItemLock(
-                "news",
-                id,
-                extraNews,
-                (l) => (extraNews = l),
-                renderNews,
-              );
+              const key = btn.dataset.lockToggle;
+              toggleLockByKey(key, btn.classList.contains("on"), renderNews);
             });
           });
 
@@ -4119,14 +4167,9 @@
         }
         $("#podList").innerHTML = all
           .map((p, i) => {
-            const locked = isItemLocked(p);
-            const toggle =
-              p.id && CL.on
-                ? `<button class="lock-toggle${p.locked ? " on" : ""}" type="button"
-                     data-lock-toggle="podcast:${esc(p.id)}">
-                     ${p.locked ? "🔓 ביטול נעילה" : "🔒 נעילת הפרק"}
-                   </button>`
-                : "";
+            const key = podKey(p);
+            const locked = isKeyLocked(p, key);
+            const toggle = lockToggleButton(key, locked, "🔒 נעילת הפרק");
             return `
     <article class="pod${locked ? " locked" : ""}">
       <div class="pod-head">
@@ -4148,7 +4191,7 @@
       <div class="pod-body">
         ${
           locked
-            ? lockedBox(p) + toggle
+            ? lockedBox(effectiveLock(p, key)) + toggle
             : `
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ""}
         ${
@@ -4171,14 +4214,8 @@
           .forEach((btn) => {
             btn.addEventListener("click", (e) => {
               e.stopPropagation();
-              const id = btn.dataset.lockToggle.slice("podcast:".length);
-              toggleItemLock(
-                "podcast",
-                id,
-                extraPods,
-                (l) => (extraPods = l),
-                renderPodcast,
-              );
+              const key = btn.dataset.lockToggle;
+              toggleLockByKey(key, btn.classList.contains("on"), renderPodcast);
             });
           });
       }
@@ -4242,8 +4279,15 @@
           activeMediaCategory = "הכל";
         renderMediaFilters(all);
         $("#mediaGrid").innerHTML = all
-          .map(
-            (m, i) => `
+          .map((m, i) => {
+            const key = mediaKey(m);
+            const locked = isKeyLocked(m, key);
+            const toggle = lockToggleButton(key, locked, "🔒 נעילת הסרטון");
+            if (locked)
+              return `<article class="media-card${activeMediaCategory !== "הכל" && m.category !== activeMediaCategory ? " is-hidden" : ""}">
+      <div class="media-info">${lockedBox(effectiveLock(m, key))}${toggle}</div>
+    </article>`;
+            return `
     <article class="media-card${i === 0 ? " featured" : ""}${activeMediaCategory !== "הכל" && m.category !== activeMediaCategory ? " is-hidden" : ""}">
       <button class="media-poster" data-media-index="${i}" aria-label="צפייה: ${esc(m.title || "סרטון")}">
         <video src="${esc(m.src)}"${m.poster ? ` poster="${esc(m.poster)}"` : ""}
@@ -4257,10 +4301,21 @@
         ${m.participants ? `<p>משתתפים: ${esc(m.participants)}</p>` : "<p>רגע מהחיים של הקבוצה</p>"}
         ${m.date ? `<span class="media-date">${esc(m.date)}</span>` : ""}
         ${CL.on && m.publicId ? `<button class="media-edit" type="button" data-edit-media="${esc(m.publicId)}">✎ עריכה</button>` : ""}
+        ${toggle}
       </div>
-    </article>`,
-          )
+    </article>`;
+          })
           .join("");
+
+        $("#mediaGrid")
+          .querySelectorAll("[data-lock-toggle]")
+          .forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const key = btn.dataset.lockToggle;
+              toggleLockByKey(key, btn.classList.contains("on"), renderMedia);
+            });
+          });
       }
 
       const mediaViewer = $("#mediaViewer");
@@ -4351,13 +4406,18 @@
 
         $("#galleryGrid").classList.remove("empty");
         $("#galleryGrid").innerHTML = shots
-          .map(
-            (g, i) => `
+          .map((g, i) => {
+            const key = galleryKey(g);
+            const locked = isKeyLocked(g, key);
+            const toggle = lockToggleButton(key, locked, "🔒 נעילת התמונה");
+            if (locked)
+              return `<figure class="shot shot-locked" data-i="${i}">${lockedBox(effectiveLock(g, key))}${toggle}</figure>`;
+            return `
     <figure class="shot" data-i="${i}">
       <img src="${esc(g.src)}" alt="${esc(g.caption || "תמונה מהמגרש")}" loading="lazy">
       ${g.caption ? `<figcaption class="cap-txt">${esc(g.caption)}</figcaption>` : ""}
-    </figure>`,
-          )
+    </figure>`;
+          })
           .join("");
 
         $$("#galleryGrid img").forEach((img) => {
@@ -4366,12 +4426,22 @@
             if (!$("#galleryGrid").children.length) galleryEmpty();
           });
         });
+
+        $("#galleryGrid")
+          .querySelectorAll("[data-lock-toggle]")
+          .forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const key = btn.dataset.lockToggle;
+              toggleLockByKey(key, btn.classList.contains("on"), renderGallery);
+            });
+          });
       }
 
       const lb = $("#lightbox");
       $("#galleryGrid").addEventListener("click", (e) => {
         const fig = e.target.closest(".shot");
-        if (!fig) return;
+        if (!fig || fig.classList.contains("shot-locked")) return;
         const item = shots[+fig.dataset.i];
         if (!item) return;
         $("img", lb).src = item.src;
@@ -4401,9 +4471,11 @@
         const cloud = (await CL.list("gallery")).map((r) => ({
           src: CL.img(r),
           caption: CL.ctx(r, "caption"),
+          publicId: r.public_id,
         }));
 
         shots = [...cloud, ...local];
+        await ensureLockOverlay();
         renderGallery();
       }
 
@@ -4448,6 +4520,7 @@
 
       async function loadCloudContent() {
         if (!CL.on) return;
+        await ensureLockOverlay();
         const [news, pods, mediaDocs, mediaAssets] = await Promise.all([
           loadDocs("news"),
           loadDocs("podcast"),
@@ -4455,11 +4528,11 @@
           CL.list("media", "video"),
         ]);
         if (news.length) {
-          extraNews = dedupeById(news);
+          extraNews = news;
           renderNews();
         }
         if (pods.length) {
-          extraPods = dedupeById(pods);
+          extraPods = pods;
           renderPodcast();
         }
         const docsByVideo = new Map();
@@ -4930,7 +5003,6 @@
               );
 
             const doc = {
-              id: `news-${Date.now()}`,
               date: today(),
               tag: $("#nTag").value.trim(),
               title,
@@ -4969,7 +5041,6 @@
           setNote($("#podNote"), "שומר…");
           try {
             const doc = {
-              id: `podcast-${Date.now()}`,
               n: $("#pNum").value.trim(),
               title,
               desc: $("#pDesc").value.trim(),
