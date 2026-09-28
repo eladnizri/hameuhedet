@@ -2402,6 +2402,57 @@
       .nav .lock-btn {
         margin-inline-start: 4px;
       }
+      .lock-toggle {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
+        padding: 4px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.28);
+        color: var(--txt-dim);
+        font: inherit;
+        font-size: 11px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.2s;
+      }
+      .lock-toggle:hover {
+        border-color: var(--team-1);
+        background: color-mix(in srgb, var(--team-1) 18%, transparent);
+        color: var(--team-1);
+      }
+      .lock-toggle.on {
+        color: var(--team-2);
+        border-color: color-mix(in srgb, var(--team-2) 45%, transparent);
+      }
+      .locked-box .lock-toggle {
+        margin-top: 14px;
+      }
+      .lock-field {
+        border: 1px dashed var(--line);
+        border-radius: 12px;
+        padding: 12px 14px;
+      }
+      .lock-field .check-row {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .lock-field .check-row input {
+        width: 17px;
+        height: 17px;
+      }
+      .lock-field .lock-extra {
+        display: none;
+        margin-top: 10px;
+        gap: 10px;
+      }
+      .lock-field .lock-extra.on {
+        display: grid;
+      }
     </style>
   </head>
   <body>
@@ -2891,6 +2942,22 @@
               <label for="nImg">תמונה (אופציונלי)</label>
               <input id="nImg" type="file" accept="image/*" />
             </div>
+            <div class="field lock-field">
+              <label class="check-row">
+                <input type="checkbox" id="nLocked" />
+                🔒 לנעול את העדכון הזה (דורש סיסמה)
+              </label>
+              <div class="lock-extra" id="nLockExtra">
+                <div class="field">
+                  <label for="nUnlockAt">פתיחה אוטומטית בתאריך/שעה (אופציונלי)</label>
+                  <input id="nUnlockAt" type="datetime-local" />
+                </div>
+                <div class="field">
+                  <label for="nLockNote">הודעה על הקופסה הנעולה (אופציונלי)</label>
+                  <input id="nLockNote" type="text" maxlength="120" placeholder="לחצו כאן להזנת סיסמה" />
+                </div>
+              </div>
+            </div>
             <button class="btn btn-main btn-wide" id="nSend">
               פרסום העדכון
             </button>
@@ -2934,6 +3001,22 @@
                 (soundcloud.com/...) — זה עובד ישירות. בספוטיפיי: שיתוף ← Embed
                 ← מעתיקים את כתובת ה-src. ביוטיוב: youtube.com/embed/VIDEO_ID
               </p>
+            </div>
+            <div class="field lock-field">
+              <label class="check-row">
+                <input type="checkbox" id="pLocked" />
+                🔒 לנעול את הפרק הזה (דורש סיסמה)
+              </label>
+              <div class="lock-extra" id="pLockExtra">
+                <div class="field">
+                  <label for="pUnlockAt">פתיחה אוטומטית בתאריך/שעה (אופציונלי)</label>
+                  <input id="pUnlockAt" type="datetime-local" />
+                </div>
+                <div class="field">
+                  <label for="pLockNote">הודעה על הקופסה הנעולה (אופציונלי)</label>
+                  <input id="pLockNote" type="text" maxlength="120" placeholder="לחצו כאן להזנת סיסמה" />
+                </div>
+              </div>
             </div>
             <button class="btn btn-main btn-wide" id="pSend">הוספת הפרק</button>
             <div id="podNote"></div>
@@ -3625,9 +3708,56 @@
 
       $("#unlockBtn").addEventListener("click", tryUnlockSite);
       document.addEventListener("click", (e) => {
+        if (e.target.closest("[data-lock-toggle]")) return;
         if (e.target.closest("[data-unlock-box]")) tryUnlockSite();
       });
       updateUnlockBtn();
+
+      /* בודקת את סיסמת הנעילה בלי לשמור אותה בדפדפן — משמשת לפעולות
+   נעילה/פתיחה נקודתיות (טופס הוספה, כפתור הנעילה על כרטיס קיים) */
+      function confirmLockPassword() {
+        const typed = prompt("סיסמה לנעילה/פתיחה:");
+        if (typed === null) return false;
+        if (typed !== UNLOCK_PASSWORD) {
+          alert("הסיסמה שגויה.");
+          return false;
+        }
+        return true;
+      }
+
+      /* פריטי חדשות/פודקאסט שכבר נשמרו נשמרים כקובץ JSON חדש בכל פעם.
+   עדכון פריט (למשל שינוי נעילה) יוצר קובץ חדש עם אותו id — כאן
+   משאירים רק את הגרסה העדכנית ביותר לכל id. */
+      function dedupeById(docs) {
+        const seen = new Set();
+        const out = [];
+        docs.forEach((d) => {
+          if (!d.id) {
+            out.push(d);
+            return;
+          }
+          if (seen.has(d.id)) return;
+          seen.add(d.id);
+          out.push(d);
+        });
+        return out;
+      }
+
+      /* נעילה/פתיחה של פריט חדשות או פודקאסט שכבר פורסם מהאתר עצמו */
+      async function toggleItemLock(tag, id, list, setList, renderFn) {
+        const item = list.find((x) => x.id === id);
+        if (!item) return;
+        if (!confirmLockPassword()) return;
+        const updated = { ...item, locked: !item.locked, updatedAt: Date.now() };
+        try {
+          await saveDoc(tag, updated);
+          setList(list.map((x) => (x.id === id ? updated : x)));
+          renderFn();
+          showToast(updated.locked ? "התוכן ננעל 🔒" : "התוכן נפתח 🔓");
+        } catch (err) {
+          alert(err.message);
+        }
+      }
 
       /* ===================== חדשות ===================== */
       let extraNews = [];
@@ -3643,8 +3773,15 @@
         }
         $("#newsList").innerHTML = all
           .map((item) => {
+            const toggle =
+              item.id && CL.on
+                ? `<button class="lock-toggle${item.locked ? " on" : ""}" type="button"
+                     data-lock-toggle="news:${esc(item.id)}">
+                     ${item.locked ? "🔓 ביטול נעילה" : "🔒 נעילת התוכן"}
+                   </button>`
+                : "";
             if (isItemLocked(item))
-              return `<article class="item no-img"><div class="body">${lockedBox(item)}</div></article>`;
+              return `<article class="item no-img"><div class="body">${lockedBox(item)}${toggle}</div></article>`;
             return `
     <article class="item${item.image ? "" : " no-img"}">
       ${
@@ -3666,10 +3803,27 @@
              target="_blank" rel="noopener">קראו עוד ←</a>`
             : ""
         }
+        ${toggle}
       </div>
     </article>`;
           })
           .join("");
+
+        $("#newsList")
+          .querySelectorAll("[data-lock-toggle]")
+          .forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const id = btn.dataset.lockToggle.slice("news:".length);
+              toggleItemLock(
+                "news",
+                id,
+                extraNews,
+                (l) => (extraNews = l),
+                renderNews,
+              );
+            });
+          });
 
         $$("#newsList .thumb img").forEach((img) => {
           img.addEventListener("error", () => {
@@ -3966,6 +4120,13 @@
         $("#podList").innerHTML = all
           .map((p, i) => {
             const locked = isItemLocked(p);
+            const toggle =
+              p.id && CL.on
+                ? `<button class="lock-toggle${p.locked ? " on" : ""}" type="button"
+                     data-lock-toggle="podcast:${esc(p.id)}">
+                     ${p.locked ? "🔓 ביטול נעילה" : "🔒 נעילת הפרק"}
+                   </button>`
+                : "";
             return `
     <article class="pod${locked ? " locked" : ""}">
       <div class="pod-head">
@@ -3987,7 +4148,7 @@
       <div class="pod-body">
         ${
           locked
-            ? lockedBox(p)
+            ? lockedBox(p) + toggle
             : `
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ""}
         ${
@@ -3997,12 +4158,29 @@
               : `<iframe src="${esc(p.embed)}" height="180" loading="lazy"
                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`
             : ""
-        }`
+        }
+        ${toggle}`
         }
       </div>
     </article>`;
           })
           .join("");
+
+        $("#podList")
+          .querySelectorAll("[data-lock-toggle]")
+          .forEach((btn) => {
+            btn.addEventListener("click", (e) => {
+              e.stopPropagation();
+              const id = btn.dataset.lockToggle.slice("podcast:".length);
+              toggleItemLock(
+                "podcast",
+                id,
+                extraPods,
+                (l) => (extraPods = l),
+                renderPodcast,
+              );
+            });
+          });
       }
 
       $("#podList").addEventListener("click", (e) => {
@@ -4277,11 +4455,11 @@
           CL.list("media", "video"),
         ]);
         if (news.length) {
-          extraNews = news;
+          extraNews = dedupeById(news);
           renderNews();
         }
         if (pods.length) {
-          extraPods = pods;
+          extraPods = dedupeById(pods);
           renderPodcast();
         }
         const docsByVideo = new Map();
@@ -4696,12 +4874,49 @@
             month: "long",
           });
 
+        /* צ׳קבוקס "לנעול" בטופס ההוספה חושף שדות פתיחה אוטומטית/הודעה */
+        function wireLockCheckbox(checkboxId, extraId) {
+          const box = $(`#${checkboxId}`);
+          box?.addEventListener("change", () => {
+            $(`#${extraId}`)?.classList.toggle("on", box.checked);
+          });
+        }
+        wireLockCheckbox("nLocked", "nLockExtra");
+        wireLockCheckbox("pLocked", "pLockExtra");
+
+        /* קוראת את שדות הנעילה בטופס. אם "לנעול" מסומן — דורשת סיסמה
+   לפני הפרסום; ביטול/סיסמה שגויה עוצר את הפרסום כולו. */
+        function readLockFields(prefix) {
+          const wantsLock = $(`#${prefix}Locked`).checked;
+          if (!wantsLock) return { ok: true, fields: { locked: false } };
+          if (!confirmLockPassword()) return { ok: false };
+          const unlockAtRaw = $(`#${prefix}UnlockAt`).value;
+          return {
+            ok: true,
+            fields: {
+              locked: true,
+              unlockAt: unlockAtRaw ? new Date(unlockAtRaw).toISOString() : "",
+              lockNote: $(`#${prefix}LockNote`).value.trim(),
+            },
+          };
+        }
+
+        function resetLockFields(prefix) {
+          $(`#${prefix}Locked`).checked = false;
+          $(`#${prefix}UnlockAt`).value = "";
+          $(`#${prefix}LockNote`).value = "";
+          $(`#${prefix}LockExtra`).classList.remove("on");
+        }
+
         /* ---- חדשות ---- */
         $("#nSend").addEventListener("click", async () => {
           const title = $("#nTitle").value.trim();
           const text = $("#nText").value.trim();
           if (!title)
             return setNote($("#newsNote"), "צריך כותרת לעדכון.", "bad");
+
+          const lock = readLockFields("n");
+          if (!lock.ok) return;
 
           const btn = $("#nSend");
           btn.disabled = true;
@@ -4715,12 +4930,15 @@
               );
 
             const doc = {
+              id: `news-${Date.now()}`,
               date: today(),
               tag: $("#nTag").value.trim(),
               title,
               text,
               image,
               link: "",
+              updatedAt: Date.now(),
+              ...lock.fields,
             };
             await saveDoc("news", doc);
 
@@ -4730,6 +4948,7 @@
             showToast("העדכון פורסם בהצלחה 📰");
             ["#nTitle", "#nText"].forEach((sel) => ($(sel).value = ""));
             $("#nImg").value = "";
+            resetLockFields("n");
           } catch (err) {
             setNote($("#newsNote"), err.message, "bad");
           } finally {
@@ -4742,17 +4961,23 @@
           const title = $("#pTitle").value.trim();
           if (!title) return setNote($("#podNote"), "צריך כותרת לפרק.", "bad");
 
+          const lock = readLockFields("p");
+          if (!lock.ok) return;
+
           const btn = $("#pSend");
           btn.disabled = true;
           setNote($("#podNote"), "שומר…");
           try {
             const doc = {
+              id: `podcast-${Date.now()}`,
               n: $("#pNum").value.trim(),
               title,
               desc: $("#pDesc").value.trim(),
               embed: $("#pEmbed").value.trim(),
               date: today(),
               duration: "",
+              updatedAt: Date.now(),
+              ...lock.fields,
             };
             await saveDoc("podcast", doc);
 
@@ -4763,6 +4988,7 @@
             ["#pNum", "#pTitle", "#pDesc", "#pEmbed"].forEach(
               (sel) => ($(sel).value = ""),
             );
+            resetLockFields("p");
           } catch (err) {
             setNote($("#podNote"), err.message, "bad");
           } finally {
