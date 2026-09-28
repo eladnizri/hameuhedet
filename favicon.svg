@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 0 132 132">
+        <defs>
+          <clipPath id="shieldClip">
+            <path d="M60 5 112 19v50c0 31-23 48-52 58C31 117 8 100 8 69V19z" />
+          </clipPath>
+        </defs>
+
+        <!-- גוף המגן: חצי שחור, חצי אדום -->
+        <g clip-path="url(#shieldClip)">
+          <rect x="0" y="0" width="60" height="132" fill="#141110" />
+          <rect x="60" y="0" width="60" height="132" fill="#cf2033" />
+        </g>
+        <path
+          d="M60 5 112 19v50c0 31-23 48-52 58C31 117 8 100 8 69V19z"
+          fill="none"
+          stroke="#e6b647"
+          stroke-width="5"
+        />
+        <path
+          d="M60 12 105 24v45c0 27-20 42-45 50C35 111 15 96 15 69V24z"
+          fill="none"
+          stroke="rgba(0,0,0,.55)"
+          stroke-width="2"
+        />
+
+        <!-- כוכבים בצד השחור -->
+        <g fill="#fff">
+          <path
+            d="M27 30l1.8 4.2 4.2.4-3.2 2.9.9 4.3L27 39.6l-3.7 2.2.9-4.3-3.2-2.9 4.2-.4z"
+          />
+          <path
+            d="M40 46l1.3 3 3 .3-2.3 2 .6 3.1L40 52.9 37.4 54.4l.6-3.1-2.3-2 3-.3z"
+          />
+          <path
+            d="M22 52l1.3 3 3 .3-2.3 2 .6 3.1L22 58.9l-2.6 1.5.6-3.1-2.3-2 3-.3z"
+          />
+          <path
+            d="M33 63l1.1 2.4 2.6.3-1.9 1.7.5 2.6-2.3-1.3-2.3 1.3.5-2.6-1.9-1.7 2.6-.3z"
+          />
+        </g>
+
+        <!-- נרגילה בצד האדום -->
+        <g fill="#e6b647">
+          <ellipse cx="87" cy="63" rx="9" ry="11" />
+          <rect x="84.6" y="38" width="4.8" height="24" rx="1.6" />
+          <rect x="81.5" y="33.5" width="11" height="4" rx="1.6" />
+          <path d="M83.4 26h7.2l-1 7h-5.2z" />
+          <path
+            d="M89 45c7 1 10 5 9.4 11-.5 4.6-3.6 6.6-6.6 6.3l.5-3.4c1.6.2 3-.8 3.3-3.3.4-3.7-1.6-6-7-7z"
+          />
+        </g>
+
+        <!-- כדור במרכז -->
+        <circle
+          cx="60"
+          cy="52"
+          r="15.5"
+          fill="#fff"
+          stroke="#141110"
+          stroke-width="1.5"
+        />
+        <g fill="#141110">
+          <path d="M60 42.5l5.4 3.9-2 6.4h-6.8l-2-6.4z" />
+          <path
+            d="M49.6 50.6l-4 3.6 2.5 5.6 4.6-.9 1.6-4.9zM70.4 50.6l4 3.6-2.5 5.6-4.6-.9-1.6-4.9z"
+          />
+          <path d="M55.6 60.4l-1.4 4.6 5.8 2.8 5.8-2.8-1.4-4.6z" />
+        </g>
+
+        <!-- סרט הזהב עם השם -->
+        <path
+          d="M8 88h104l-8 11 8 11H8l8-11z"
+          fill="#e6b647"
+          stroke="#141110"
+          stroke-width="2.5"
+        />
+        <text
+          x="60"
+          y="103.5"
+          text-anchor="middle"
+          direction="rtl"
+          font-family="Heebo, Arial, sans-serif"
+          font-size="15"
+          font-weight="900"
+          fill="#141110"
+          letter-spacing="0.5"
+        >
+          המאוחדת
+        </text>
+</svg>

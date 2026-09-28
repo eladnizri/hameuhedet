@@ -9,6 +9,7 @@
       content="האתר הרשמי של קבוצת הכדורגל החברית — סגל, טבלה, מלך שערים, פודקאסט וגלריה."
     />
     <meta name="theme-color" content="#0d0b0b" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -3623,6 +3624,9 @@
       setInterval(updateMatchCountdown, 1000);
 
       if (TEAM.logo) {
+        const icon = document.querySelector("link[rel='icon']");
+        icon.removeAttribute("type");
+        icon.href = TEAM.logo;
         $$("svg.crest-sm, svg.crest-lg").forEach((svg) => {
           const img = new Image();
           img.src = TEAM.logo;
