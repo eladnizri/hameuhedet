@@ -2343,6 +2343,65 @@
           font-size: 12px;
         }
       }
+
+      /* ===== נעילת תוכן ===== */
+      .lock-btn {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 16px;
+        border-radius: 999px;
+        font-weight: 700;
+        font-size: 14px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--txt-dim);
+        cursor: pointer;
+        white-space: nowrap;
+        transition: 0.2s;
+        flex: none;
+      }
+      .lock-btn:hover {
+        color: var(--txt);
+        background: rgba(255, 255, 255, 0.11);
+      }
+      .lock-btn.unlocked {
+        color: var(--team-1);
+        border-color: color-mix(in srgb, var(--team-1) 45%, transparent);
+      }
+      .locked-box {
+        position: relative;
+        text-align: center;
+        padding: 34px 22px;
+        border-radius: var(--radius);
+        border: 1px dashed color-mix(in srgb, var(--team-1) 40%, var(--line));
+        background: linear-gradient(160deg, var(--card), var(--card-2));
+        cursor: pointer;
+      }
+      .locked-box .ico {
+        font-size: 30px;
+        margin-bottom: 10px;
+      }
+      .locked-box h4 {
+        margin: 0 0 6px;
+        font-size: 16px;
+        font-weight: 900;
+      }
+      .locked-box p {
+        margin: 0;
+        font-size: 13px;
+        color: var(--txt-dim);
+      }
+      .locked-box:hover {
+        border-color: var(--team-1);
+      }
+      article.pod.locked .pod-play,
+      article.pod.locked .pod-head {
+        cursor: pointer;
+      }
+      .nav .lock-btn {
+        margin-inline-start: 4px;
+      }
     </style>
   </head>
   <body>
@@ -2482,6 +2541,9 @@
           <a href="#media">מדיה</a>
           <a href="#gallery">גלריה</a>
           <a href="#follow">עקבו אחרינו</a>
+          <button class="lock-btn" id="unlockBtn" title="פתיחת תוכן נעול באתר">
+            🔒 פתיחת נעילה
+          </button>
         </nav>
       </div>
     </header>
@@ -3039,6 +3101,14 @@
         colors: { main: "#e6b647", second: "#cf2033" }, // זהב ואדום, לפי הסמל
       };
 
+      /* ==== נעילת תוכן ====
+   אפשר לנעול כל פרק פודקאסט או עדכון חדשות בנפרד — ראו ההסבר ליד
+   PODCASTS ו-NEWS למטה (locked / unlockAt / lockNote).
+   כפתור "פתיחת נעילה" בתפריט העליון פותח את כל התוכן הנעול באתר
+   בבת אחת, למי שמקליד את הסיסמה הזו. הפתיחה נשמרת בדפדפן של הגולש
+   כדי שלא יצטרך להקליד שוב בכל ביקור.                              */
+      const UNLOCK_PASSWORD = "poppy";
+
       /* המספרים הגדולים בראש העמוד.
    כשהרשימה ריקה — האתר מחשב לבד את גודל הסגל והחלוקה לפי עמדות.
    כשיהיו נתוני עונה אמיתיים, פשוט ממלאים כאן ומה שכתוב כאן גובר, למשל:
@@ -3066,6 +3136,15 @@
    image = אופציונלי, למשל 'images/news-kit.jpg'. בלי תמונה — הכרטיס
            פשוט נפרס על כל הרוחב.
    link  = אופציונלי, קישור ל"קראו עוד" (למשל לפוסט באינסטגרם).
+
+   locked   = true נועל את העדכון כתוכן סודי — במקום הכרטיס יוצג
+              קופסה נעולה בלבד (הכותרת עצמה לא נחשפת).
+   unlockAt = תאריך/שעה, למשל '2026-10-01T12:00' — נועל רק עד אז,
+              ואז נפתח לבד לכולם אוטומטית (למשל "עד ארוחת הצהריים").
+   lockNote = טקסט חופשי שמוצג בקופסה הנעולה במקום ברירת המחדל.
+
+   פתיחה זמנית: מי שמקליד את הסיסמה בכפתור "פתיחת נעילה" למעלה
+   פותח את כל התוכן הנעול באתר, גם בלי unlockAt.
 
    כשהרשימה ריקה מוצג באתר כרטיס "בקרוב".                              */
       const NEWS = [
@@ -3204,7 +3283,16 @@
           https://soundcloud.com/havanargila/2a1 (הוא מומר אוטומטית לנגן).
           בספוטיפיי — שיתוף ← Embed ← מעתיקים את כתובת ה-src מתוך ה-iframe.
           ביוטיוב — https://www.youtube.com/embed/VIDEO_ID
-   פרק בלי embed יוצג עם הכותרת והתיאור, בלי נגן.                     */
+   פרק בלי embed יוצג עם הכותרת והתיאור, בלי נגן.
+
+   locked   = true נועל את הפרק: הכותרת נשארת מוצגת ברשימה, אבל
+              התיאור והנגן מוחלפים בקופסה נעולה עד שנכנסים עם הסיסמה.
+   unlockAt = תאריך/שעה, למשל '2026-10-01T12:00' — נועל רק עד אז ואז
+              נפתח לבד לכולם (למשל "נעול עד ארוחת הצהריים").
+   lockNote = טקסט חופשי לקופסה הנעולה, במקום ברירת המחדל.
+   דוגמה:
+   { n:11, title:'פרק מיוחד', date:'שישי', locked:true,
+     unlockAt:'2026-10-02T13:00', lockNote:'נחשף בארוחת הצהריים!' }  */
       const PODCASTS = [];
 
       /* ---- מדיה ----
@@ -3463,6 +3551,84 @@
         )
         .join("");
 
+      /* ===================== נעילת תוכן ===================== */
+      const UNLOCK_KEY = "hameuhedet-site-unlock";
+
+      function isSiteUnlocked() {
+        try {
+          return localStorage.getItem(UNLOCK_KEY) === "1";
+        } catch {
+          return false;
+        }
+      }
+
+      /* פריט נעול = מסומן locked, ואין unlockAt שכבר עבר, ואין פתיחה גורפת של האתר */
+      function isItemLocked(item) {
+        if (!item?.locked) return false;
+        if (item.unlockAt && Date.now() >= new Date(item.unlockAt).getTime())
+          return false;
+        return !isSiteUnlocked();
+      }
+
+      function formatUnlockAt(iso) {
+        const d = new Date(iso);
+        if (isNaN(d)) return "";
+        return d.toLocaleString("he-IL", {
+          day: "numeric",
+          month: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      }
+
+      function lockedBox(item) {
+        const until = item.unlockAt ? formatUnlockAt(item.unlockAt) : "";
+        const note = item.lockNote || "לחצו כאן להזנת סיסמה";
+        return `
+    <div class="locked-box" data-unlock-box>
+      <div class="ico">🔒</div>
+      <h4>תוכן נעול</h4>
+      <p>${until ? `נפתח אוטומטית ב-${esc(until)}. ` : ""}${esc(note)}</p>
+    </div>`;
+      }
+
+      function refreshLockedSections() {
+        renderNews();
+        renderPodcast();
+        updateUnlockBtn();
+      }
+
+      function updateUnlockBtn() {
+        const btn = $("#unlockBtn");
+        if (!btn) return;
+        const on = isSiteUnlocked();
+        btn.classList.toggle("unlocked", on);
+        btn.textContent = on ? "🔓 התוכן פתוח" : "🔒 פתיחת נעילה";
+      }
+
+      function tryUnlockSite() {
+        if (isSiteUnlocked()) {
+          refreshLockedSections();
+          return;
+        }
+        const typed = prompt("סיסמה לפתיחת התוכן הנעול באתר:");
+        if (typed === null) return;
+        if (typed === UNLOCK_PASSWORD) {
+          try {
+            localStorage.setItem(UNLOCK_KEY, "1");
+          } catch {}
+          refreshLockedSections();
+        } else {
+          alert("הסיסמה שגויה.");
+        }
+      }
+
+      $("#unlockBtn").addEventListener("click", tryUnlockSite);
+      document.addEventListener("click", (e) => {
+        if (e.target.closest("[data-unlock-box]")) tryUnlockSite();
+      });
+      updateUnlockBtn();
+
       /* ===================== חדשות ===================== */
       let extraNews = [];
 
@@ -3476,8 +3642,10 @@
           return;
         }
         $("#newsList").innerHTML = all
-          .map(
-            (item) => `
+          .map((item) => {
+            if (isItemLocked(item))
+              return `<article class="item no-img"><div class="body">${lockedBox(item)}</div></article>`;
+            return `
     <article class="item${item.image ? "" : " no-img"}">
       ${
         item.image
@@ -3499,8 +3667,8 @@
             : ""
         }
       </div>
-    </article>`,
-          )
+    </article>`;
+          })
           .join("");
 
         $$("#newsList .thumb img").forEach((img) => {
@@ -3796,9 +3964,10 @@
           return;
         }
         $("#podList").innerHTML = all
-          .map(
-            (p, i) => `
-    <article class="pod">
+          .map((p, i) => {
+            const locked = isItemLocked(p);
+            return `
+    <article class="pod${locked ? " locked" : ""}">
       <div class="pod-head">
         <div class="pod-num">#${esc(p.n ?? "")}</div>
         <div>
@@ -3806,7 +3975,7 @@
           <p class="meta">${[p.date, p.duration]
             .filter(Boolean)
             .map((x) => `<span>${esc(x)}</span>`)
-            .join("")}</p>
+            .join("")}${locked ? "<span>🔒 נעול</span>" : ""}</p>
         </div>
         <button class="pod-play" aria-label="הצגת הפרק">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
@@ -3816,6 +3985,10 @@
         </button>
       </div>
       <div class="pod-body">
+        ${
+          locked
+            ? lockedBox(p)
+            : `
         ${p.desc ? `<p>${esc(p.desc)}</p>` : ""}
         ${
           p.embed
@@ -3824,10 +3997,11 @@
               : `<iframe src="${esc(p.embed)}" height="180" loading="lazy"
                    allow="autoplay; clipboard-write; encrypted-media; picture-in-picture"></iframe>`
             : ""
+        }`
         }
       </div>
-    </article>`,
-          )
+    </article>`;
+          })
           .join("");
       }
 
