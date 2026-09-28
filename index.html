@@ -9,6 +9,35 @@
       content="האתר הרשמי של קבוצת הכדורגל החברית — סגל, טבלה, מלך שערים, פודקאסט וגלריה."
     />
     <meta name="theme-color" content="#0d0b0b" />
+    <script>
+      /* ==== ניתוב לעמודים: /stats, /players/<שם>, /live, /admin ====
+   כל העמודים הם אותו קובץ. כתובת עמוק שנפתחת ישירות מגיעה קודם
+   ל-404.html, שמחזיר לכאן עם ?route=... — וכאן מחזירים לכתובת היפה.
+   ה-<base> שומר שקבצים יחסיים (תמונות, favicon) ימשיכו להיטען גם
+   כשהכתובת היא /players/משהו. בפתיחה מקומית (file://) משתמשים ב-#/stats. */
+      (function () {
+        var ROUTE = /^(stats|live|admin|players\/[^/]+)\/?$/;
+        var p = location.pathname;
+        var m = p.match(/^(.*?\/)(stats|live|admin|players\/[^/]+)\/?$/);
+        var base = m ? m[1] : p.replace(/[^/]*$/, "");
+        window.SITE_BASE = base;
+        if (location.protocol === "file:") return;
+        var q = new URLSearchParams(location.search);
+        var r = q.get("route");
+        if (r !== null) {
+          q.delete("route");
+          var s = q.toString();
+          history.replaceState(
+            null,
+            "",
+            base + (ROUTE.test(r) ? r : "") + (s ? "?" + s : "") + location.hash,
+          );
+        }
+        var b = document.createElement("base");
+        b.href = base;
+        document.head.appendChild(b);
+      })();
+    </script>
     <link rel="icon" type="image/svg+xml" href="favicon.svg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -2490,6 +2519,1105 @@
       .shot .lock-toggle:focus-visible {
         opacity: 1;
       }
+
+      /* ===== סטטיסטיקה של כל הזמנים ===== */
+      .nav a[hidden] {
+        display: none;
+      }
+      .view {
+        min-height: 70vh;
+        padding: 44px 0 80px;
+      }
+      .back-link {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        margin-bottom: 18px;
+        font-size: 14px;
+        font-weight: 700;
+        color: var(--txt-dim);
+      }
+      .back-link:hover {
+        color: var(--txt);
+      }
+      .st-more {
+        margin-top: 18px;
+      }
+      a.scorer {
+        transition: 0.2s;
+      }
+      a.scorer:hover {
+        border-color: color-mix(in srgb, var(--team-1) 55%, transparent);
+      }
+      .st-totals {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 28px;
+      }
+      .st-controls {
+        display: grid;
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      .st-controls .filters,
+      .st-controls .tabs {
+        margin: 0;
+      }
+      .st-label {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1px;
+        color: var(--txt-dim);
+      }
+      .podium {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 12px;
+        margin-bottom: 18px;
+      }
+      .podium a {
+        position: relative;
+        display: grid;
+        gap: 4px;
+        padding: 18px 16px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: linear-gradient(160deg, var(--card), var(--card-2));
+        overflow: hidden;
+        transition: 0.2s;
+      }
+      .podium a:hover {
+        transform: translateY(-3px);
+        border-color: color-mix(in srgb, var(--team-1) 55%, transparent);
+      }
+      .podium a:first-child {
+        border-color: color-mix(in srgb, var(--team-1) 60%, transparent);
+        background: linear-gradient(
+          160deg,
+          color-mix(in srgb, var(--team-1) 16%, var(--card)),
+          var(--card)
+        );
+      }
+      .podium .medal {
+        font-size: 26px;
+      }
+      .podium b {
+        font-size: 17px;
+        font-weight: 900;
+      }
+      .podium .val {
+        font-size: 36px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--team-1);
+      }
+      .podium small {
+        font-size: 12px;
+        color: var(--txt-dim);
+        font-weight: 700;
+      }
+      .podium .ghost-num {
+        position: absolute;
+        inset-inline-end: 12px;
+        top: 4px;
+        font-size: 64px;
+        font-weight: 900;
+        color: rgba(255, 255, 255, 0.05);
+        line-height: 1;
+      }
+      table.lb th.sorted,
+      table.lb td.sorted {
+        color: var(--team-1);
+        font-weight: 900;
+      }
+      table.lb th small {
+        display: block;
+        font-size: 10.5px;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+      table.lb td a {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-weight: 800;
+      }
+      table.lb td a:hover {
+        color: var(--team-1);
+      }
+      table.lb .shirt-no {
+        min-width: 30px;
+        padding: 3px 6px;
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--txt-dim);
+        font-size: 12px;
+        text-align: center;
+      }
+      .alumni-tag {
+        font-size: 11px;
+        font-weight: 800;
+        padding: 2px 8px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.08);
+        color: var(--txt-dim);
+      }
+      .st-h {
+        margin: 36px 0 14px;
+        font-size: 20px;
+        font-weight: 900;
+      }
+      .match-list {
+        display: grid;
+        gap: 8px;
+      }
+      .match-row {
+        display: grid;
+        grid-template-columns: 76px 1fr auto;
+        gap: 14px;
+        align-items: center;
+        padding: 12px 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .match-row .who {
+        min-width: 0;
+      }
+      .match-row .who b {
+        font-weight: 800;
+      }
+      .match-row .who span {
+        display: block;
+        margin-top: 3px;
+        font-size: 12.5px;
+        color: var(--txt-dim);
+        line-height: 1.5;
+      }
+      .when b {
+        display: block;
+        font-size: 14px;
+        font-weight: 800;
+      }
+      .when small {
+        font-size: 11.5px;
+        color: var(--txt-dim);
+      }
+      .res {
+        padding: 5px 10px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 900;
+        white-space: nowrap;
+        font-variant-numeric: tabular-nums;
+        background: #9c8f86;
+        color: var(--ink);
+      }
+      .res.W {
+        background: var(--team-1);
+      }
+      .res.L {
+        background: #8a2b33;
+        color: #ffd9dc;
+      }
+      .res.live {
+        background: var(--team-2);
+        color: #fff;
+      }
+      .op-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        justify-content: center;
+        margin-top: 44px;
+        padding-top: 24px;
+        border-top: 1px solid var(--line);
+      }
+      .op-links .btn {
+        padding: 10px 18px;
+        font-size: 14px;
+      }
+
+      /* ===== כרטיס שחקן ===== */
+      .player .info h3 a:hover {
+        color: var(--team-1);
+      }
+      .pf-link {
+        display: inline-block;
+        margin-top: 10px;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--txt-dim);
+      }
+      .pf-link:hover {
+        color: var(--team-1);
+      }
+      .pf-banner {
+        position: relative;
+        display: grid;
+        grid-template-columns: 190px 1fr;
+        gap: 26px;
+        align-items: center;
+        padding: 24px;
+        border-radius: 24px;
+        border: 1px solid var(--line);
+        background:
+          radial-gradient(
+            90% 120% at 100% 0%,
+            color-mix(in srgb, var(--team-2) 20%, transparent),
+            transparent 60%
+          ),
+          linear-gradient(160deg, var(--card), var(--card-2));
+        overflow: hidden;
+      }
+      .pf-photo {
+        position: relative;
+        aspect-ratio: 1/1;
+        border-radius: 18px;
+        overflow: hidden;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(158deg, #2a2020, #15100f);
+        border: 1px solid var(--line);
+      }
+      .pf-photo img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .pf-photo .initials {
+        font-size: 56px;
+        font-weight: 900;
+        color: color-mix(in srgb, var(--team-1) 45%, transparent);
+      }
+      .pf-bignum {
+        position: absolute;
+        inset-inline-end: 22px;
+        top: 6px;
+        font-size: 130px;
+        font-weight: 900;
+        line-height: 1;
+        color: rgba(255, 255, 255, 0.05);
+        pointer-events: none;
+      }
+      .pf-name {
+        position: relative;
+        min-width: 0;
+      }
+      .pf-name h1 {
+        margin: 0;
+        font-size: clamp(30px, 5vw, 46px);
+        font-weight: 900;
+        letter-spacing: -1px;
+        line-height: 1.1;
+      }
+      .pf-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 10px;
+      }
+      .pf-chip {
+        padding: 5px 12px;
+        border-radius: 99px;
+        font-size: 12.5px;
+        font-weight: 800;
+        background: rgba(255, 255, 255, 0.07);
+        color: var(--txt-dim);
+      }
+      .pf-chip.gold {
+        background: var(--team-1);
+        color: var(--ink);
+      }
+      .pf-chip.red {
+        background: color-mix(in srgb, var(--team-2) 30%, transparent);
+        color: #ffc7cc;
+      }
+      .pf-stats {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+        margin-top: 20px;
+      }
+      .pf-stat {
+        padding: 14px 10px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: rgba(0, 0, 0, 0.25);
+        text-align: center;
+      }
+      .pf-stat b {
+        display: block;
+        font-size: 32px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--team-1);
+        font-variant-numeric: tabular-nums;
+      }
+      .pf-stat span {
+        display: block;
+        margin-top: 6px;
+        font-size: 12.5px;
+        font-weight: 700;
+        color: var(--txt-dim);
+      }
+      .pf-stat small {
+        display: block;
+        margin-top: 3px;
+        font-size: 11px;
+        color: var(--txt-dim);
+        opacity: 0.8;
+      }
+      .badges {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+        gap: 12px;
+      }
+      .badge-card {
+        padding: 18px 14px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        text-align: center;
+      }
+      .badge-card .ico {
+        font-size: 36px;
+        line-height: 1;
+      }
+      .badge-card.earned {
+        border-color: color-mix(in srgb, var(--team-1) 55%, transparent);
+        background: linear-gradient(
+          160deg,
+          color-mix(in srgb, var(--team-1) 15%, var(--card)),
+          var(--card)
+        );
+      }
+      .badge-card:not(.earned) .ico {
+        filter: grayscale(1);
+        opacity: 0.35;
+      }
+      .badge-card h4 {
+        margin: 10px 0 4px;
+        font-size: 15px;
+        font-weight: 800;
+      }
+      .badge-card p {
+        margin: 0;
+        font-size: 12.5px;
+        color: var(--txt-dim);
+        line-height: 1.5;
+      }
+      .badge-card .bar {
+        margin-top: 10px;
+      }
+      .log-tools {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        align-items: center;
+        margin-bottom: 14px;
+      }
+      .log-tools .filters {
+        margin: 0;
+      }
+      .log-search {
+        flex: 1 1 220px;
+        padding: 11px 16px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        color: var(--txt);
+        font: inherit;
+        font-size: 15px;
+      }
+      .log-search:focus {
+        outline: none;
+        border-color: color-mix(in srgb, var(--team-1) 60%, transparent);
+      }
+      .log-tags {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        justify-content: flex-end;
+      }
+      .tag {
+        padding: 4px 9px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--txt-dim);
+      }
+      .tag.g {
+        background: color-mix(in srgb, var(--team-1) 20%, transparent);
+        color: var(--team-1);
+      }
+      .tag.a {
+        background: color-mix(in srgb, var(--team-2) 24%, transparent);
+        color: #ffb8bf;
+      }
+      .match-row.hist {
+        border-style: dashed;
+      }
+      .match-row.quiet {
+        opacity: 0.72;
+      }
+      .log-empty {
+        padding: 22px;
+        border-radius: 14px;
+        border: 1px dashed var(--line);
+        color: var(--txt-dim);
+        text-align: center;
+      }
+      .season-tbl table {
+        min-width: 460px;
+      }
+
+      /* ===== מצב קו (רישום בזמן משחק) ===== */
+      body.live-mode .topbar,
+      body.live-mode footer,
+      body.live-mode .fab,
+      body.admin-mode .fab {
+        display: none;
+      }
+      body.live-mode .view {
+        padding: 0;
+      }
+      body.live-mode .toast-region {
+        inset-block-start: auto;
+        inset-block-end: calc(34vh + env(safe-area-inset-bottom));
+      }
+      .live {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        max-width: 560px;
+        min-height: 100vh;
+        min-height: 100dvh;
+        margin-inline: auto;
+        padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+      }
+      .live-top {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .live-top .ttl {
+        flex: 1;
+        min-width: 0;
+        font-weight: 800;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .live-top .ttl small {
+        display: block;
+        font-size: 12px;
+        font-weight: 600;
+        color: var(--txt-dim);
+      }
+      .icon-btn {
+        flex: none;
+        display: grid;
+        place-items: center;
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--txt);
+        font-size: 18px;
+        cursor: pointer;
+      }
+      .sync {
+        padding: 5px 10px;
+        border-radius: 99px;
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+        background: rgba(255, 255, 255, 0.06);
+        color: var(--txt-dim);
+      }
+      .sync.ok {
+        color: var(--team-1);
+      }
+      .sync.wait {
+        color: #ffd27a;
+      }
+      .sync.bad {
+        color: #ff9aa4;
+      }
+      .board {
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
+        align-items: center;
+        padding: 16px 10px;
+        border-radius: 20px;
+        border: 1px solid var(--line);
+        background: linear-gradient(160deg, var(--card), var(--card-2));
+        text-align: center;
+      }
+      .board .team {
+        font-size: 15px;
+        font-weight: 800;
+        overflow-wrap: anywhere;
+      }
+      .board .score {
+        font-size: 58px;
+        font-weight: 900;
+        line-height: 1;
+        font-variant-numeric: tabular-nums;
+        direction: ltr;
+      }
+      .board .score i {
+        margin: 0 8px;
+        font-style: normal;
+        color: var(--txt-dim);
+      }
+      .feed {
+        flex: 1;
+        display: grid;
+        align-content: start;
+        gap: 8px;
+        overflow-y: auto;
+        min-height: 60px;
+      }
+      .feed-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: var(--card);
+        font-size: 14px;
+        line-height: 1.4;
+      }
+      .feed-item .t {
+        margin-inline-start: auto;
+        font-size: 12px;
+        color: var(--txt-dim);
+        font-variant-numeric: tabular-nums;
+      }
+      .feed-item.them {
+        opacity: 0.7;
+      }
+      .feed-item small {
+        display: block;
+        color: var(--txt-dim);
+        font-size: 12.5px;
+      }
+      .feed-empty {
+        padding: 18px;
+        text-align: center;
+        color: var(--txt-dim);
+        font-size: 14px;
+      }
+      .undo-bar {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--team-2) 55%, transparent);
+        background: color-mix(in srgb, var(--team-2) 18%, var(--card));
+        color: var(--txt);
+        font: inherit;
+        font-size: 15px;
+        font-weight: 800;
+        text-align: start;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .undo-bar small {
+        display: block;
+        font-weight: 600;
+        font-size: 12.5px;
+        color: var(--txt-dim);
+      }
+      .undo-bar .cd {
+        margin-inline-start: auto;
+        font-variant-numeric: tabular-nums;
+        color: #ffb8bf;
+      }
+      .goal-btn {
+        width: 100%;
+        min-height: 26vh;
+        border: 0;
+        border-radius: 26px;
+        background: radial-gradient(
+          circle at 50% 25%,
+          color-mix(in srgb, var(--team-1) 80%, #fff),
+          var(--team-1) 70%
+        );
+        color: var(--ink);
+        font: inherit;
+        font-size: 46px;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 16px 40px color-mix(in srgb, var(--team-1) 28%, transparent);
+        touch-action: manipulation;
+        transition: transform 0.1s;
+      }
+      .goal-btn:active {
+        transform: scale(0.98);
+      }
+      .live-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        gap: 10px;
+      }
+      .live-row .btn {
+        justify-content: center;
+        padding: 15px 8px;
+        font-size: 14px;
+        touch-action: manipulation;
+      }
+      .btn.armed {
+        background: var(--team-2);
+        border-color: var(--team-2);
+        color: #fff;
+      }
+      .live h2 {
+        margin: 6px 0 0;
+        font-size: 26px;
+        font-weight: 900;
+      }
+      .live .field {
+        margin-bottom: 10px;
+      }
+      .live .row2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .lineup-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-top: 6px;
+      }
+      .lineup-head b {
+        font-size: 16px;
+        font-weight: 900;
+      }
+      .lineup-head span {
+        font-size: 13px;
+        color: var(--txt-dim);
+      }
+      .open-matches {
+        display: grid;
+        gap: 8px;
+      }
+      .open-matches button {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 14px 16px;
+        border-radius: 14px;
+        border: 1px solid color-mix(in srgb, var(--team-1) 45%, transparent);
+        background: color-mix(in srgb, var(--team-1) 10%, var(--card));
+        color: var(--txt);
+        font: inherit;
+        font-weight: 800;
+        cursor: pointer;
+      }
+      .live-note {
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-size: 13.5px;
+        line-height: 1.6;
+        border: 1px solid rgba(255, 210, 122, 0.4);
+        color: #ffd27a;
+        background: rgba(255, 210, 122, 0.06);
+      }
+      .live-lock {
+        margin: auto;
+        text-align: center;
+        display: grid;
+        gap: 14px;
+        justify-items: center;
+      }
+      .live-lock .ico {
+        font-size: 48px;
+      }
+
+      /* שכבת הבחירה (מי כבש / מי בישל / הרכב) */
+      #liveOverlay:empty {
+        display: none;
+      }
+      .picker {
+        position: fixed;
+        inset: 0;
+        z-index: 120;
+        display: flex;
+        justify-content: center;
+        background: var(--bg);
+        animation: fade 0.18s;
+      }
+      .picker-in {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        width: 100%;
+        max-width: 560px;
+        padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+      }
+      .pick-head {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .pick-head h3 {
+        flex: 1;
+        margin: 0;
+        font-size: 24px;
+        font-weight: 900;
+      }
+      .steps {
+        display: flex;
+        gap: 6px;
+      }
+      .steps i {
+        width: 26px;
+        height: 5px;
+        border-radius: 99px;
+        background: rgba(255, 255, 255, 0.12);
+      }
+      .steps i.on {
+        background: var(--team-1);
+      }
+      .pick-note {
+        min-height: 20px;
+        font-size: 14px;
+        color: var(--txt-dim);
+      }
+      .pick-note b {
+        color: var(--team-1);
+      }
+      .pick-grid {
+        flex: 1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        grid-auto-rows: min-content;
+        gap: 10px;
+        overflow-y: auto;
+        align-content: start;
+        padding-bottom: 4px;
+      }
+      .pick {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        min-height: 92px;
+        padding: 8px 6px;
+        border-radius: 16px;
+        border: 1px solid var(--line);
+        background: linear-gradient(160deg, var(--card), var(--card-2));
+        color: var(--txt);
+        font: inherit;
+        cursor: pointer;
+        touch-action: manipulation;
+      }
+      .pick b {
+        font-size: 32px;
+        font-weight: 900;
+        line-height: 1;
+        color: var(--team-1);
+      }
+      .pick span {
+        font-size: 13px;
+        font-weight: 700;
+        line-height: 1.25;
+        text-align: center;
+        overflow-wrap: anywhere;
+      }
+      .pick:active,
+      .pick.on {
+        background: var(--team-1);
+        border-color: var(--team-1);
+        color: var(--ink);
+      }
+      .pick:active b,
+      .pick.on b {
+        color: var(--ink);
+      }
+      .pick.off {
+        opacity: 0.45;
+      }
+      .pick.alt {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        min-height: 60px;
+        border-style: dashed;
+        font-size: 16px;
+        font-weight: 800;
+      }
+      .confirm-list {
+        display: grid;
+        gap: 10px;
+        align-content: start;
+        flex: 1;
+      }
+      .confirm-line {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        padding: 16px;
+        border-radius: 14px;
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .confirm-line span {
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--txt-dim);
+      }
+      .confirm-line b {
+        font-size: 19px;
+        font-weight: 900;
+      }
+      .confirm-line small {
+        display: block;
+        font-size: 12.5px;
+        font-weight: 800;
+        color: var(--team-1);
+      }
+      .big-ok {
+        width: 100%;
+        min-height: 70px;
+        justify-content: center;
+        font-size: 21px;
+        touch-action: manipulation;
+      }
+
+      .milestone {
+        position: fixed;
+        inset: 0;
+        z-index: 160;
+        display: grid;
+        place-items: center;
+        padding: 24px;
+        background: rgba(0, 0, 0, 0.65);
+        animation: fade 0.25s;
+        cursor: pointer;
+      }
+      .milestone-card {
+        max-width: 360px;
+        padding: 30px 22px;
+        border-radius: 24px;
+        border: 1px solid color-mix(in srgb, var(--team-1) 60%, transparent);
+        background: linear-gradient(
+          160deg,
+          color-mix(in srgb, var(--team-1) 22%, var(--card)),
+          var(--card)
+        );
+        box-shadow: var(--shadow);
+        text-align: center;
+      }
+      .milestone-card .ico {
+        font-size: 66px;
+        line-height: 1;
+        animation: pop 0.5s;
+      }
+      .milestone-card h3 {
+        margin: 14px 0 6px;
+        font-size: 23px;
+        font-weight: 900;
+        line-height: 1.3;
+      }
+      .milestone-card p {
+        margin: 0;
+        color: var(--txt-dim);
+        line-height: 1.5;
+      }
+      .milestone-card .eyebrow {
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 2px;
+        color: var(--team-1);
+      }
+      @keyframes pop {
+        0% {
+          transform: scale(0.3);
+        }
+        70% {
+          transform: scale(1.15);
+        }
+        100% {
+          transform: scale(1);
+        }
+      }
+
+      /* ===== ניהול ===== */
+      .adm-card {
+        margin-bottom: 20px;
+        padding: 22px;
+        border-radius: var(--radius);
+        border: 1px solid var(--line);
+        background: var(--card);
+      }
+      .adm-card h3 {
+        margin: 0 0 4px;
+        font-size: 20px;
+        font-weight: 900;
+      }
+      .adm-card > p {
+        margin: 0 0 18px;
+        font-size: 14px;
+        line-height: 1.6;
+        color: var(--txt-dim);
+      }
+      .grid-fields {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+        gap: 0 12px;
+      }
+      .adm-list {
+        display: grid;
+        gap: 8px;
+        margin-top: 16px;
+      }
+      .adm-row {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.02);
+        font-size: 14px;
+      }
+      .adm-row .grow {
+        flex: 1;
+        min-width: 160px;
+      }
+      .adm-row .grow small {
+        display: block;
+        color: var(--txt-dim);
+        font-size: 12.5px;
+      }
+      .seg {
+        display: inline-flex;
+        border-radius: 99px;
+        border: 1px solid var(--line);
+        overflow: hidden;
+      }
+      .seg button {
+        padding: 7px 14px;
+        border: 0;
+        background: transparent;
+        color: var(--txt-dim);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .seg button.on {
+        background: var(--team-1);
+        color: var(--ink);
+      }
+      .mini-btn {
+        padding: 6px 12px;
+        border-radius: 99px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        color: var(--txt);
+        font: inherit;
+        font-size: 13px;
+        font-weight: 700;
+        cursor: pointer;
+      }
+      .mini-btn.danger {
+        color: #ff9aa4;
+        border-color: rgba(207, 32, 51, 0.45);
+      }
+      .mini-btn.armed {
+        background: var(--team-2);
+        border-color: var(--team-2);
+        color: #fff;
+      }
+      .adm-card details {
+        margin-top: 16px;
+      }
+      .adm-card summary {
+        cursor: pointer;
+        font-weight: 800;
+        color: var(--team-1);
+      }
+      .adm-goals {
+        display: grid;
+        gap: 6px;
+        width: 100%;
+        margin-top: 4px;
+        padding-inline-start: 12px;
+        border-inline-start: 2px solid var(--line);
+      }
+      .adm-goals div {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 13.5px;
+      }
+      .adm-goals div span {
+        flex: 1;
+      }
+
+      @media (max-width: 760px) {
+        .st-totals,
+        .pf-stats {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .pf-banner {
+          grid-template-columns: 1fr;
+          padding: 18px;
+        }
+        .pf-photo {
+          width: 120px;
+        }
+        .pf-bignum {
+          font-size: 96px;
+        }
+        .podium {
+          grid-template-columns: 1fr;
+        }
+        .podium a {
+          grid-template-columns: auto 1fr auto;
+          align-items: center;
+          gap: 12px;
+          padding: 12px 14px;
+        }
+        .podium .val {
+          font-size: 28px;
+        }
+        .podium .ghost-num {
+          display: none;
+        }
+        .match-row {
+          grid-template-columns: 62px 1fr;
+        }
+        .match-row > :last-child {
+          grid-column: 1 / -1;
+          justify-content: flex-start;
+          justify-self: start;
+        }
+      }
+      @media (max-width: 380px) {
+        .pick-grid {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .goal-btn {
+          font-size: 38px;
+        }
+      }
     </style>
   </head>
   <body>
@@ -2625,6 +3753,7 @@
           <a href="#squad">הסגל</a>
           <a href="#staff">הנהלה</a>
           <a href="#table">טבלה</a>
+          <a href="stats" data-route="stats">סטטיסטיקה</a>
           <a href="#podcast">פודקאסט</a>
           <a href="#media">מדיה</a>
           <a href="#gallery">גלריה</a>
@@ -2782,6 +3911,9 @@
           <div class="pane" id="pane-assists">
             <div class="scorers" id="assistsList"></div>
           </div>
+          <a class="btn btn-ghost st-more" href="stats" data-route="stats">
+            📊 כל הסטטיסטיקה של כל הזמנים ←
+          </a>
         </div>
       </section>
 
@@ -2854,6 +3986,10 @@
         </div>
       </section>
     </main>
+
+    <!-- ===== עמודי הסטטיסטיקה: /stats, /players/<שם>, /live, /admin ===== -->
+    <div class="view" id="view" hidden></div>
+    <div id="liveOverlay"></div>
 
     <footer>
       <div class="wrap">
@@ -3945,6 +5081,10 @@
         $("#squadGrid").innerHTML = list
           .map((p) => {
             const pic = photoOf[p.i] || p.photo;
+            /* המספרים מגיעים ממעקב כל הזמנים — כולל apps/goals/assists
+               שמולאו כאן ידנית, שנספרים שם כ"לפני המעקב" */
+            const c = careerOf(p.name);
+            const prof = playerRoute(p.name);
             return `
     <article class="player${p.status ? " out" : ""}">
       <div class="photo">
@@ -3970,18 +5110,19 @@
         }
       </div>
       <div class="info">
-        <h3>${esc(p.name)}</h3>
+        <h3><a href="${esc(routeHref(prof))}" data-route="${esc(prof)}">${esc(p.name)}</a></h3>
         <span class="pos">${esc(p.pos || p.status || "העמדה תתעדכן")}</span>
         ${
-          hasStats(p)
+          c.matches || c.contrib
             ? `
         <div class="nums">
-          <div><b>${p.apps ?? 0}</b><span>הופעות</span></div>
-          <div><b>${p.goals ?? 0}</b><span>שערים</span></div>
-          <div><b>${p.assists ?? 0}</b><span>בישולים</span></div>
+          <div><b>${c.matches}</b><span>הופעות</span></div>
+          <div><b>${c.goals}</b><span>שערים</span></div>
+          <div><b>${c.assists}</b><span>בישולים</span></div>
         </div>`
             : ""
         }
+        <a class="pf-link" href="${esc(routeHref(prof))}" data-route="${esc(prof)}">📊 כרטיס קריירה ←</a>
       </div>
     </article>`;
           })
@@ -4040,52 +5181,58 @@
         }).join("");
       }
 
-      /* ===================== טבלה ומלכי השערים ===================== */
-      const TABS = [
-        { id: "league", label: "טבלת הליגה", show: LEAGUE.length > 0 },
-        {
-          id: "scorers",
-          label: "מלך שערים",
-          show: SQUAD.some((p) => p.goals > 0),
-        },
-        {
-          id: "assists",
-          label: "מלך בישולים",
-          show: SQUAD.some((p) => p.assists > 0),
-        },
-      ].filter((t) => t.show);
+      /* ===================== טבלה ומלכי השערים =====================
+   מלך השערים ומלך הבישולים מגיעים ממעקב הסטטיסטיקה של כל הזמנים,
+   ולכן מתעדכנים לבד אחרי כל שער שנרשם מהקו. בלי ליגה ובלי שערים —
+   הסקשן (והקישור אליו בתפריט) יוצאים מהעמוד עד שיהיה מה להראות. */
+      const MEDALS = ["🥇", "🥈", "🥉"];
+      const tableSec = $("#table");
+      const tableSpot = document.createComment(" table ");
+      tableSec.before(tableSpot);
+      let tableTab = null;
 
-      if (!TABS.length) {
-        $("#table").remove();
-        $$('.nav a[href="#table"]').forEach((a) => a.remove());
-      } else {
+      function renderTableSection() {
+        const leaders = leaderboard("all");
+        const tabs = [
+          { id: "league", label: "טבלת הליגה", show: LEAGUE.length > 0 },
+          {
+            id: "scorers",
+            label: "מלך שערים",
+            show: leaders.some((r) => r.goals > 0),
+          },
+          {
+            id: "assists",
+            label: "מלך בישולים",
+            show: leaders.some((r) => r.assists > 0),
+          },
+        ].filter((t) => t.show);
+
+        $$('.nav a[href="#table"]').forEach((a) => (a.hidden = !tabs.length));
+        if (!tabs.length) {
+          tableSec.remove();
+          return;
+        }
+        if (!tableSec.isConnected) tableSpot.after(tableSec);
+        if (!tabs.some((t) => t.id === tableTab)) tableTab = tabs[0].id;
+
         const onlyRanks = !LEAGUE.length;
         $("#tableTitle").textContent = onlyRanks
           ? "מלך שערים ומלך בישולים"
           : "טבלה ומלך שערים";
         $("#tableLead").textContent = onlyRanks
-          ? "מי מוביל את מרוץ הבועטים והמבשלים של הקבוצה."
+          ? "מי מוביל את מרוץ הבועטים והמבשלים של הקבוצה, בכל הזמנים."
           : "המצב המעודכן בליגה, ומי מוביל את מרוץ הבועטים של הקבוצה.";
 
-        $("#tableTabs").innerHTML = TABS.map(
-          (t, i) =>
-            `<button class="chip${i ? "" : " on"}" data-tab="${t.id}">${esc(t.label)}</button>`,
-        ).join("");
-        $$(".pane").forEach((pane) => {
+        $("#tableTabs").innerHTML = tabs
+          .map(
+            (t) =>
+              `<button class="chip${t.id === tableTab ? " on" : ""}" data-tab="${t.id}">${esc(t.label)}</button>`,
+          )
+          .join("");
+        $$(".pane", tableSec).forEach((pane) => {
           const id = pane.id.replace("pane-", "");
-          pane.classList.toggle("on", id === TABS[0].id);
-          if (!TABS.some((t) => t.id === id)) pane.remove();
-        });
-
-        $("#tableTabs").addEventListener("click", (e) => {
-          const btn = e.target.closest("[data-tab]");
-          if (!btn) return;
-          $$("#tableTabs .chip").forEach((c) =>
-            c.classList.toggle("on", c === btn),
-          );
-          $$(".pane").forEach((p) =>
-            p.classList.toggle("on", p.id === "pane-" + btn.dataset.tab),
-          );
+          pane.classList.toggle("on", id === tableTab);
+          pane.hidden = !tabs.some((t) => t.id === id);
         });
 
         if (LEAGUE.length) {
@@ -4111,32 +5258,43 @@
             .join("");
         }
 
-        const MEDALS = ["🥇", "🥈", "🥉"];
         const renderRanking = (el, key, label) => {
-          const list = [...SQUAD]
-            .filter((p) => p[key] > 0)
-            .sort((a, b) => b[key] - a[key])
-            .slice(0, 8);
+          const list = rankRows(
+            leaders.filter((r) => r[key] > 0),
+            key,
+          ).slice(0, 8);
+          if (!list.length) return (el.innerHTML = "");
           const top = list[0][key];
           el.innerHTML = list
-            .map(
-              (p, i) => `
-      <div class="scorer">
+            .map((r, i) => {
+              const route = playerRoute(r.p.pid);
+              return `
+      <a class="scorer" href="${esc(routeHref(route))}" data-route="${esc(route)}">
         <div class="medal">${MEDALS[i] || i + 1}</div>
         <div>
-          <h4>${esc(p.name)} <span style="color:var(--txt-dim);font-weight:600;font-size:13px">· ${esc(p.pos)}</span></h4>
-          <div class="bar"><i style="width:${Math.round((p[key] / top) * 100)}%"></i></div>
+          <h4>${esc(r.p.name)} <span style="color:var(--txt-dim);font-weight:600;font-size:13px">${r.p.pos ? "· " + esc(r.p.pos) : ""}</span></h4>
+          <div class="bar"><i style="width:${Math.round((r[key] / top) * 100)}%"></i></div>
         </div>
-        <div class="goals">${p[key]}<small>${label}</small></div>
-      </div>`,
-            )
+        <div class="goals">${r[key]}<small>${label}</small></div>
+      </a>`;
+            })
             .join("");
         };
-        if ($("#scorersList"))
-          renderRanking($("#scorersList"), "goals", "שערים");
-        if ($("#assistsList"))
-          renderRanking($("#assistsList"), "assists", "בישולים");
+        renderRanking($("#scorersList"), "goals", "שערים");
+        renderRanking($("#assistsList"), "assists", "בישולים");
       }
+
+      $("#tableTabs").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-tab]");
+        if (!btn) return;
+        tableTab = btn.dataset.tab;
+        $$("#tableTabs .chip").forEach((c) =>
+          c.classList.toggle("on", c === btn),
+        );
+        $$(".pane", tableSec).forEach((p) =>
+          p.classList.toggle("on", p.id === "pane-" + tableTab),
+        );
+      });
 
       /* ===================== פודקאסט ===================== */
       let extraPods = [];
@@ -4508,7 +5666,10 @@
           if (m && SQUAD[+m[1]] && !((+m[1]) in photoOf))
             photoOf[+m[1]] = CL.img(r, 700);
         });
-        if (Object.keys(photoOf).length) renderSquad();
+        if (Object.keys(photoOf).length) {
+          renderSquad();
+          refreshView();
+        }
 
         staff.forEach((r) => {
           const m = /^staff-(\d+)-/.exec(r.public_id.split("/").pop() || "");
@@ -5343,14 +6504,1641 @@
         });
       }
 
+      /* ===================== סטטיסטיקה של כל הזמנים =====================
+   כל פעולה מהקו (פתיחת משחק, שער, בישול, ביטול) ומהניהול (רישום
+   היסטורי, סטטוס שחקן) נשמרת כמסמך קטן בתווית "stats" ב-Cloudinary.
+   שום סיכום לא נשמר — הכל מחושב מחדש מכל האירועים בכל טעינה, כך
+   שאין אף פעם מונה שיכול לזוז מהמציאות, וביטול = אירוע "void" שמבטל
+   אירוע קודם. אירוע שנרשם נשמר קודם במכשיר ורק אז נשלח, כך שגם בלי
+   קליטה בצד המגרש שום שער לא הולך לאיבוד.                          */
+      const STATS_TAG = "stats";
+      const SK = {
+        cache: "hameuhedet-stats-cache",
+        local: "hameuhedet-stats-local",
+        live: "hameuhedet-live-match",
+      };
+      const TRACK_START = "לפני המעקב";
+      const store = {
+        get(k, d) {
+          try {
+            const v = localStorage.getItem(k);
+            return v ? JSON.parse(v) : d;
+          } catch {
+            return d;
+          }
+        },
+        set(k, v) {
+          try {
+            localStorage.setItem(k, JSON.stringify(v));
+          } catch {}
+        },
+      };
+      const uid = () =>
+        Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+      /* האירוע נשמר גם בשדה context של הקובץ, כדי שרשימת התווית
+   תחזיר את כולם בבקשה אחת במקום בקשה לכל שער */
+      const b64u = (s) => {
+        let bin = "";
+        new TextEncoder().encode(s).forEach((c) => (bin += String.fromCharCode(c)));
+        return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+      };
+      const unb64u = (s) => {
+        s = s.replace(/-/g, "+").replace(/_/g, "/");
+        s += "===".slice((s.length + 3) % 4);
+        return new TextDecoder().decode(
+          Uint8Array.from(atob(s), (c) => c.charCodeAt(0)),
+        );
+      };
+
+      let remoteEvents = store.get(SK.cache, []);
+      let localEvents = store.get(SK.local, []);
+      let statsLoaded = !CL.on;
+      let lastSyncOk = true;
+      const saveLocal = () => store.set(SK.local, localEvents);
+      const strip = ({ _sent, _src, ...e }) => e;
+
+      function allEvents() {
+        const byId = new Map();
+        remoteEvents.forEach((e) => e && e.id && byId.set(e.id, e));
+        localEvents.forEach((e) => byId.has(e.id) || byId.set(e.id, e));
+        return [...byId.values()];
+      }
+
+      async function uploadEvent(e) {
+        const json = JSON.stringify(e);
+        const file = new File([json], `stats-${e.kind}-${e.id}.json`, {
+          type: "application/json",
+        });
+        const d = b64u(json);
+        return CL.upload(file, {
+          tags: [STATS_TAG],
+          type: "raw",
+          context: d.length < 900 ? { d } : undefined,
+        });
+      }
+
+      function record(kind, data) {
+        const e = { v: 1, id: uid(), kind, at: Date.now(), ...data };
+        localEvents.push({ ...e, _sent: false });
+        saveLocal();
+        rebuild();
+        flushOutbox();
+        return e;
+      }
+
+      let flushing = false;
+      async function flushOutbox() {
+        if (flushing || !CL.on) return updateSync();
+        flushing = true;
+        try {
+          for (const e of localEvents.filter((x) => !x._sent)) {
+            try {
+              await uploadEvent(strip(e));
+              e._sent = true;
+              lastSyncOk = true;
+              saveLocal();
+            } catch {
+              lastSyncOk = false;
+              break; /* אין קליטה — ננסה שוב בעוד רגע */
+            }
+          }
+        } finally {
+          flushing = false;
+          updateSync();
+        }
+      }
+      setInterval(flushOutbox, 15000);
+      window.addEventListener("online", flushOutbox);
+
+      async function loadStatsRemote() {
+        if (!CL.on) return;
+        try {
+          const r = await fetch(
+            CL.res("raw", `list/${STATS_TAG}.json?_=${Date.now()}`),
+          );
+          /* 404 = אין עדיין אף מסמך בתווית; כל שגיאה אחרת — נשארים עם
+             מה שנשמר במכשיר מהפעם הקודמת במקום למחוק הכל */
+          if (!r.ok && r.status !== 404) return;
+          const list = r.ok ? (await r.json()).resources || [] : [];
+          const known = new Map(remoteEvents.map((e) => [e._src, e]));
+          const evs = await Promise.all(
+            list.map(async (res) => {
+              if (known.has(res.public_id)) return known.get(res.public_id);
+              let e = null;
+              const d = CL.ctx(res, "d");
+              if (d) {
+                try {
+                  e = JSON.parse(unb64u(d));
+                } catch {}
+              }
+              if (!e) {
+                try {
+                  const f = await fetch(CL.raw(res));
+                  if (f.ok) e = await f.json();
+                } catch {}
+              }
+              return e && e.id ? { ...e, _src: res.public_id } : null;
+            }),
+          );
+          remoteEvents = evs.filter(Boolean);
+          store.set(SK.cache, remoteEvents);
+          /* מה שכבר מופיע ברשימה הציבורית לא צריך יותר עותק מקומי */
+          const have = new Set(remoteEvents.map((e) => e.id));
+          const dayAgo = Date.now() - 864e5;
+          localEvents = localEvents.filter(
+            (e) => !have.has(e.id) && (!e._sent || e.at > dayAgo),
+          );
+          saveLocal();
+        } catch {
+        } finally {
+          statsLoaded = true;
+          rebuild();
+        }
+      }
+
+      /* ---------- מנוע הסיכום ---------- */
+      function seasonOf(date) {
+        const d = new Date(date);
+        if (isNaN(d)) return "";
+        const y = d.getMonth() >= 7 ? d.getFullYear() : d.getFullYear() - 1;
+        return `${y}/${String(y + 1).slice(2)}`;
+      }
+      const emptyTally = () => ({ matches: 0, goals: 0, a1: 0, a2: 0, hat: 0 });
+      function addTally(t, x) {
+        for (const k of ["matches", "goals", "a1", "a2", "hat"])
+          t[k] += Number(x[k]) || 0;
+      }
+      const withDerived = (t) => ({
+        ...t,
+        assists: t.a1 + t.a2,
+        contrib: t.goals + t.a1 + t.a2,
+      });
+      const seasonSort = (a, b) => {
+        const da = /^\d{4}/.test(a),
+          db = /^\d{4}/.test(b);
+        if (da !== db) return da ? -1 : 1;
+        return b.localeCompare(a, "he");
+      };
+
+      function build(events) {
+        const evs = events
+          .filter((e) => e && e.kind)
+          .sort((a, b) => (a.at || 0) - (b.at || 0));
+        const voided = new Set(
+          evs.filter((e) => e.kind === "void").map((e) => e.target),
+        );
+
+        const players = new Map();
+        SQUAD.forEach((p, i) =>
+          players.set(p.name, {
+            pid: p.name,
+            name: p.name,
+            n: p.n ?? "",
+            pos: p.pos || "",
+            captain: !!p.captain,
+            injured: p.status || "",
+            photo: p.photo || "",
+            status: "active",
+            squadIndex: i,
+          }),
+        );
+        /* שחקן שמופיע במשחק ישן אבל כבר לא בסגל — נשאר, כבוגר המועדון */
+        const ensure = (pid) => {
+          if (pid && !players.has(pid))
+            players.set(pid, {
+              pid,
+              name: pid,
+              n: "",
+              pos: "",
+              status: "alumni",
+              squadIndex: -1,
+            });
+          return players.get(pid);
+        };
+
+        const matches = new Map();
+        const backfill = [];
+        const scoring = [];
+        for (const e of evs) {
+          if (voided.has(e.id)) continue;
+          if (e.kind === "player" && e.name) {
+            const p = players.get(e.name);
+            if (p) {
+              if (e.n !== undefined && e.n !== "") p.n = e.n;
+              if (e.pos) p.pos = e.pos;
+              if (e.status) p.status = e.status;
+            } else
+              players.set(e.name, {
+                pid: e.name,
+                name: e.name,
+                n: e.n ?? "",
+                pos: e.pos || "",
+                status: e.status === "alumni" ? "alumni" : "active",
+                squadIndex: -1,
+                added: true,
+              });
+          } else if (e.kind === "roster") {
+            const p = ensure(e.pid);
+            if (p) p.status = e.status === "alumni" ? "alumni" : "active";
+          } else if (e.kind === "match" && e.mid && !voided.has(e.mid)) {
+            const prev = matches.get(e.mid);
+            matches.set(e.mid, {
+              ...(prev || {}),
+              ...e,
+              created: prev ? prev.created : e.at,
+            });
+          } else if (e.kind === "backfill" && e.pid) backfill.push(e);
+          else if (e.kind === "goal" || e.kind === "against") scoring.push(e);
+        }
+
+        const list = [...matches.values()].map((m) => ({
+          ...m,
+          lineup: m.lineup || [],
+          season: m.season || seasonOf(m.date),
+          goals: [],
+          against: [],
+        }));
+        const byMid = new Map(list.map((m) => [m.mid, m]));
+        for (const e of scoring) {
+          const m = byMid.get(e.mid);
+          if (m) (e.kind === "goal" ? m.goals : m.against).push(e);
+        }
+        list.forEach((m) => {
+          m.us = m.goals.length;
+          m.them = m.against.length;
+          m.result = m.us > m.them ? "W" : m.us < m.them ? "L" : "D";
+        });
+        list.sort(
+          (a, b) =>
+            String(b.date).localeCompare(String(a.date)) || b.created - a.created,
+        );
+
+        const lines = new Map();
+        const lineOf = (pid) => {
+          ensure(pid);
+          if (!lines.has(pid))
+            lines.set(pid, { all: emptyTally(), seasons: new Map(), log: [] });
+          return lines.get(pid);
+        };
+        const bump = (L, season, x) => {
+          addTally(L.all, x);
+          if (!L.seasons.has(season)) L.seasons.set(season, emptyTally());
+          addTally(L.seasons.get(season), x);
+        };
+
+        /* מהישן לחדש — כדי לדעת מה היה השער הראשון */
+        for (const m of [...list].reverse()) {
+          const involved = new Set(m.lineup);
+          m.goals.forEach((g) =>
+            [g.scorer, g.a1, g.a2].forEach((p) => p && involved.add(p)),
+          );
+          for (const pid of involved) {
+            const x = {
+              matches: 1,
+              goals: m.goals.filter((g) => g.scorer === pid).length,
+              a1: m.goals.filter((g) => g.a1 === pid).length,
+              a2: m.goals.filter((g) => g.a2 === pid).length,
+            };
+            x.hat = x.goals >= 3 ? 1 : 0;
+            const L = lineOf(pid);
+            bump(L, m.season, x);
+            L.log.unshift({ type: "match", m, ...x });
+            if (x.goals && !L.firstGoal) L.firstGoal = m;
+          }
+        }
+
+        /* apps/goals/assists שמולאו ידנית ב-SQUAD נספרים כרישום היסטורי */
+        const staticFill = SQUAD.filter(hasStats).map((p) => ({
+          id: "static:" + p.name,
+          pid: p.name,
+          season: TRACK_START,
+          matches: p.apps,
+          goals: p.goals,
+          a1: p.assists,
+          a2: 0,
+          hat: 0,
+          note: "מתוך קובץ האתר",
+          static: true,
+        }));
+        for (const b of [...backfill, ...staticFill]) {
+          const L = lineOf(b.pid);
+          const x = {
+            matches: +b.matches || 0,
+            goals: +b.goals || 0,
+            a1: +b.a1 || 0,
+            a2: +b.a2 || 0,
+            hat: +b.hat || 0,
+          };
+          bump(L, b.season || TRACK_START, x);
+          L.log.push({ type: "hist", b, ...x });
+        }
+
+        const seasons = new Set(list.map((m) => m.season).filter(Boolean));
+        [...backfill, ...staticFill].forEach((b) =>
+          seasons.add(b.season || TRACK_START),
+        );
+        return {
+          players,
+          lines,
+          matches: list,
+          backfill,
+          seasons: [...seasons].sort(seasonSort),
+          opponents: [...new Set(list.map((m) => m.opponent).filter(Boolean))],
+        };
+      }
+
+      let DB = build(allEvents());
+      function rebuild() {
+        DB = build(allEvents());
+        renderSquad();
+        renderTableSection();
+        refreshView();
+        updateSync();
+      }
+
+      function lineFor(pid, scope = "all") {
+        const L = DB.lines.get(pid);
+        if (!L) return emptyTally();
+        if (scope === "all" || scope === "active") return L.all;
+        return L.seasons.get(scope) || emptyTally();
+      }
+      const careerOf = (pid, scope) => withDerived(lineFor(pid, scope));
+
+      function leaderboard(scope) {
+        return [...DB.players.values()]
+          .filter((p) => scope !== "active" || p.status === "active")
+          .map((p) => ({ p, ...careerOf(p.pid, scope) }))
+          .filter((r) => r.matches || r.contrib);
+      }
+
+      const LADDERS = {
+        contrib: {
+          label: "🌟 תרומה כוללת",
+          keys: ["contrib", "goals", "assists"],
+          unit: "תרומות",
+        },
+        goals: {
+          label: "⚽ מלך השערים",
+          keys: ["goals", "contrib", "a1"],
+          unit: "שערים",
+        },
+        assists: {
+          label: "🎯 מלך הבישולים",
+          keys: ["assists", "a1", "goals"],
+          unit: "בישולים",
+        },
+      };
+      /* דירוג תחרותי: שוויון במדד הראשי = אותו מקום (1, 1, 3) */
+      function rankRows(rows, ladder) {
+        const k = LADDERS[ladder].keys;
+        rows.sort((a, b) => {
+          for (const key of k) if (b[key] !== a[key]) return b[key] - a[key];
+          return a.matches - b.matches || a.p.name.localeCompare(b.p.name, "he");
+        });
+        rows.forEach((r, i) => {
+          r.rank =
+            i && r[k[0]] === rows[i - 1][k[0]] ? rows[i - 1].rank : i + 1;
+        });
+        return rows;
+      }
+
+      /* ---------- ניתוב ---------- */
+      const USE_HASH = location.protocol === "file:";
+      const HOME_TITLE = document.title;
+      const view = $("#view");
+      const routeHref = (r) => (USE_HASH ? (r ? `#/${r}` : "#") : SITE_BASE + r);
+      const playerRoute = (pid) => `players/${encodeURIComponent(pid)}`;
+
+      function readRoute() {
+        if (location.hash.startsWith("#/")) return location.hash.slice(2);
+        if (USE_HASH) return "";
+        const p = location.pathname;
+        const rest = p.startsWith(SITE_BASE) ? p.slice(SITE_BASE.length) : "";
+        return /^(stats|live|admin|players\/[^/]+)\/?$/.test(rest)
+          ? rest.replace(/\/$/, "")
+          : "";
+      }
+      function routeParts() {
+        const [head, ...rest] = readRoute().split("/");
+        let arg = rest.join("/");
+        try {
+          arg = decodeURIComponent(arg);
+        } catch {}
+        return [head, arg];
+      }
+
+      let homeScroll = 0;
+      let shownRoute = "";
+      function go(r) {
+        if (!readRoute()) homeScroll = scrollY;
+        if (USE_HASH) location.hash = r ? `#/${r}` : "#";
+        else {
+          history.pushState(null, "", routeHref(r));
+          renderRoute();
+        }
+      }
+
+      function renderRoute() {
+        const [head, arg] = routeParts();
+        const was = shownRoute;
+        shownRoute = readRoute();
+        $("main").hidden = !!head;
+        view.hidden = !head;
+        document.body.classList.toggle("live-mode", head === "live");
+        document.body.classList.toggle("admin-mode", head === "admin");
+        $$(".nav a[data-route]").forEach((a) =>
+          a.classList.toggle("on", head === "stats" || head === "players"),
+        );
+        if (head !== "live") leaveLive();
+        if (!head) {
+          document.title = HOME_TITLE;
+          $("#liveOverlay").innerHTML = "";
+          if (was) {
+            const target = location.hash && document.getElementById(location.hash.slice(1));
+            if (target) target.scrollIntoView();
+            else scrollTo(0, homeScroll);
+          }
+          return;
+        }
+        if (was !== shownRoute) {
+          scrollTo(0, 0);
+          if (head === "live" || head === "admin") gate.authed ||= mayEdit();
+        }
+        if (head === "stats") renderStatsPage();
+        else if (head === "players") renderProfile(arg);
+        else if (head === "live") renderLive();
+        else if (head === "admin") renderAdmin();
+      }
+
+      /* רענון העמוד הפתוח אחרי שהגיעו נתונים — בלי לקפוץ לראש העמוד
+   ובלי לדרוס שדה שמישהו מקליד בו עכשיו */
+      function refreshView() {
+        const [head, arg] = routeParts();
+        if (!head || view.hidden) return;
+        const typing =
+          view.contains(document.activeElement) &&
+          document.activeElement.matches("input, select, textarea");
+        if (head === "stats") renderStatsPage();
+        else if (head === "players") typing ? renderLog() : renderProfile(arg);
+        else if (head === "live") !typing && renderLive();
+        else if (head === "admin") renderAdminLists();
+      }
+
+      window.addEventListener("popstate", renderRoute);
+      window.addEventListener("hashchange", () => {
+        if (USE_HASH || location.hash.startsWith("#/")) renderRoute();
+      });
+
+      document.addEventListener("click", (e) => {
+        if (e.defaultPrevented || e.button || e.metaKey || e.ctrlKey || e.shiftKey)
+          return;
+        const a = e.target.closest("a[data-route], a[href^='#']");
+        if (!a) return;
+        if (a.hasAttribute("data-route")) {
+          e.preventDefault();
+          go(a.dataset.route);
+          return;
+        }
+        /* קישור לסקשן בדף הבית (#news וכו') — גם מתוך עמוד סטטיסטיקה */
+        const href = a.getAttribute("href");
+        if (href.startsWith("#/")) return;
+        if (USE_HASH) {
+          if (!readRoute()) return;
+          e.preventDefault();
+          $("main").hidden = false;
+          view.hidden = true;
+          location.hash = href;
+          return;
+        }
+        e.preventDefault();
+        const fromView = !!readRoute();
+        history.pushState(null, "", SITE_BASE + href);
+        if (fromView) renderRoute();
+        const t = href.length > 1 && document.getElementById(href.slice(1));
+        t ? t.scrollIntoView() : scrollTo(0, 0);
+      });
+      $$("a[data-route]").forEach((a) => (a.href = routeHref(a.dataset.route)));
+
+      /* ---------- עזרי תצוגה ---------- */
+      const gate = { authed: false };
+      function fmtDate(iso, long) {
+        const [y, m, d] = String(iso || "").split("-");
+        if (!d) return iso || "";
+        return long ? `${+d}.${+m}.${y}` : `${+d}.${+m}.${y.slice(2)}`;
+      }
+      const todayISO = () => {
+        const d = new Date();
+        return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      };
+      const RES_LABEL = { W: "נ׳", D: "ת׳", L: "ה׳" };
+      const nameOf = (pid) => DB.players.get(pid)?.name || pid || "";
+      const shortName = (pid) => {
+        const p = DB.players.get(pid);
+        const n = p?.n !== "" && p?.n !== undefined ? `#${p.n} ` : "";
+        return n + nameOf(pid);
+      };
+      const byShirt = (a, b) =>
+        (Number(a.n) || 999) - (Number(b.n) || 999) ||
+        a.name.localeCompare(b.name, "he");
+      const photoFor = (p) =>
+        (p.squadIndex >= 0 && photoOf[p.squadIndex]) || p.photo || "";
+      const scopeLabel = (s) =>
+        s === "all"
+          ? "כל הזמנים"
+          : s === "active"
+            ? "סגל פעיל"
+            : s === TRACK_START
+              ? TRACK_START
+              : `עונת ${s}`;
+      const vibrate = (ms = 12) => navigator.vibrate?.(ms);
+
+      const emptyCard = (title, text) => `
+    <div class="soon"><h3>${esc(title)}</h3><p>${esc(text)}</p></div>`;
+
+      /* לחיצה ראשונה מבקשת אישור, שנייה תוך 3 שניות מבצעת — במקום confirm() */
+      function armed(btn, text = "לחצו שוב לאישור") {
+        if (btn.classList.contains("armed")) return true;
+        const orig = btn.innerHTML;
+        btn.classList.add("armed");
+        btn.textContent = text;
+        setTimeout(() => {
+          if (!btn.isConnected) return;
+          btn.classList.remove("armed");
+          btn.innerHTML = orig;
+        }, 3000);
+        return false;
+      }
+
+      function scorersLine(m) {
+        const count = new Map();
+        m.goals.forEach((g) => {
+          const k = g.og ? "__og" : g.scorer;
+          count.set(k, (count.get(k) || 0) + 1);
+        });
+        return [...count]
+          .map(([k, c]) =>
+            (k === "__og" ? "שער עצמי" : nameOf(k)) + (c > 1 ? ` ×${c}` : ""),
+          )
+          .join(" · ");
+      }
+
+      function matchRowHtml(m, extra = "") {
+        const live = !m.ended;
+        return `
+    <div class="match-row">
+      <div class="when"><b>${esc(fmtDate(m.date))}</b><small>${esc(m.season)}</small></div>
+      <div class="who">
+        <b>מול ${esc(m.opponent || "יריבה")}</b>
+        <span>${m.goals.length ? "⚽ " + esc(scorersLine(m)) : "בלי כובשים מהקבוצה"}${m.venue ? ` · 📍 ${esc(m.venue)}` : ""}</span>
+      </div>
+      <div class="log-tags">${extra}<span class="res ${live ? "live" : m.result}">${live ? "חי · " : RES_LABEL[m.result] + " "}${m.us}–${m.them}</span></div>
+    </div>`;
+      }
+
+      /* ---------- /stats — טבלת כל הזמנים ---------- */
+      const stView = { scope: "all", ladder: "contrib" };
+
+      function renderStatsPage() {
+        document.title = `סטטיסטיקה של כל הזמנים — ${TEAM.name}`;
+        const scopes = ["all", "active", ...DB.seasons];
+        if (!scopes.includes(stView.scope)) stView.scope = "all";
+        const L = LADDERS[stView.ladder];
+        const rows = rankRows(leaderboard(stView.scope), stView.ladder);
+        const seasonScope = !["all", "active"].includes(stView.scope);
+        const ms = DB.matches.filter(
+          (m) => m.ended && (!seasonScope || m.season === stView.scope),
+        );
+        const rec = { W: 0, D: 0, L: 0 };
+        ms.forEach((m) => rec[m.result]++);
+        const sum = (k) => rows.reduce((t, r) => t + r[k], 0);
+        const sortedCols = { contrib: ["contrib"], goals: ["goals"], assists: ["a1", "a2"] }[stView.ladder];
+        const col = (k) => (sortedCols.includes(k) ? "sorted" : "");
+
+        const podium = rows
+          .filter((r) => r[L.keys[0]] > 0)
+          .slice(0, 3)
+          .map((r, i) => {
+            const route = playerRoute(r.p.pid);
+            return `
+      <a href="${esc(routeHref(route))}" data-route="${esc(route)}">
+        <span class="ghost-num">${esc(r.p.n)}</span>
+        <span class="medal">${MEDALS[i]}</span>
+        <div><b>${esc(r.p.name)}</b><br><small>${r.matches} משחקים · ${r.goals} ש׳ · ${r.assists} ב׳</small></div>
+        <span class="val">${r[L.keys[0]]}<small> ${L.unit}</small></span>
+      </a>`;
+          })
+          .join("");
+
+        const body = rows
+          .map((r) => {
+            const route = playerRoute(r.p.pid);
+            return `
+      <tr${r.rank === 1 ? ' class="us"' : ""}>
+        <td class="rank">${r[L.keys[0]] ? r.rank : "–"}</td>
+        <td><a href="${esc(routeHref(route))}" data-route="${esc(route)}">
+          <span class="shirt-no">${r.p.n !== "" ? esc(r.p.n) : "–"}</span>${esc(r.p.name)}
+          ${r.p.status === "alumni" ? '<span class="alumni-tag">בוגר</span>' : ""}</a></td>
+        <td>${r.matches}</td>
+        <td class="${col("goals")}">${r.goals}</td>
+        <td class="${col("a1")}">${r.a1}</td>
+        <td class="${col("a2")}">${r.a2}</td>
+        <td class="pts ${col("contrib")}">${r.contrib}</td>
+      </tr>`;
+          })
+          .join("");
+
+        const recent = DB.matches
+          .filter((m) => !seasonScope || m.season === stView.scope)
+          .slice(0, 6);
+
+        view.innerHTML = `
+    <div class="wrap">
+      <a class="back-link" href="#top">→ לדף הבית</a>
+      <div class="sec-head">
+        <p class="eyebrow">📊 היכל התהילה</p>
+        <h2>הסטטיסטיקה של כל הזמנים</h2>
+        <p>כל שער וכל בישול שנרשמו מהקו מאז שהתחלנו לספור, יחד עם הנתונים ההיסטוריים של הקבוצה. מתעדכן לבד אחרי כל שער.</p>
+      </div>
+
+      <div class="st-totals">
+        <div class="stat"><span class="stat-icon" aria-hidden="true">🗓️</span><div><b>${ms.length}</b><span>משחקים מתועדים</span></div></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">📈</span><div><b>${rec.W} · ${rec.D} · ${rec.L}</b><span>נ׳ · ת׳ · ה׳</span></div></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">⚽</span><div><b>${sum("goals")}</b><span>שערים</span></div></div>
+        <div class="stat"><span class="stat-icon" aria-hidden="true">🎯</span><div><b>${sum("assists")}</b><span>בישולים</span></div></div>
+      </div>
+
+      <div class="st-controls">
+        <span class="st-label">תקופה</span>
+        <div class="filters" data-group="scope">
+          ${scopes.map((s) => `<button class="chip${s === stView.scope ? " on" : ""}" data-scope="${esc(s)}">${esc(scopeLabel(s))}</button>`).join("")}
+        </div>
+        <span class="st-label">דירוג</span>
+        <div class="tabs">
+          ${Object.entries(LADDERS).map(([k, l]) => `<button class="chip${k === stView.ladder ? " on" : ""}" data-ladder="${k}">${l.label}</button>`).join("")}
+        </div>
+      </div>
+
+      ${
+        rows.length
+          ? `
+      ${podium ? `<div class="podium">${podium}</div>` : ""}
+      <div class="tbl-wrap">
+        <table class="lb">
+          <thead><tr>
+            <th>#</th><th>שחקן</th><th>משחקים</th>
+            <th class="${col("goals")}">שערים</th>
+            <th class="${col("a1")}">בישול ראשון</th>
+            <th class="${col("a2")}">בישול שני</th>
+            <th class="${col("contrib")}">סה״כ תרומה<small>שערים + בישולים</small></th>
+          </tr></thead>
+          <tbody>${body}</tbody>
+        </table>
+      </div>`
+          : emptyCard(
+              statsLoaded ? "עוד אין כאן מספרים" : "טוען את הסטטיסטיקה…",
+              statsLoaded
+                ? stView.scope === "active"
+                  ? "לשחקני הסגל הפעיל עוד לא נרשמו משחקים או שערים."
+                  : "ברגע שיירשם השער הראשון מהקו, הטבלה תתמלא כאן לבד."
+                : "רגע אחד, מביאים את כל המשחקים מהענן.",
+            )
+      }
+
+      ${
+        recent.length
+          ? `<h3 class="st-h">משחקים אחרונים</h3><div class="match-list">${recent.map((m) => matchRowHtml(m)).join("")}</div>`
+          : ""
+      }
+
+      <div class="op-links">
+        <a class="btn btn-ghost" href="${esc(routeHref("live"))}" data-route="live">🎛️ רישום משחק מהקו</a>
+        <a class="btn btn-ghost" href="${esc(routeHref("admin"))}" data-route="admin">⚙️ ניהול סטטיסטיקה</a>
+      </div>
+    </div>`;
+      }
+
+      /* ---------- /players/<שם> — כרטיס קריירה ---------- */
+      const plView = { pid: "", q: "", f: "all" };
+
+      function badgesFor(pid, t) {
+        const L = DB.lines.get(pid);
+        const fg = L?.firstGoal;
+        const tier = (n) => ({
+          icon: "🎯",
+          title: `פליימייקר ${n}`,
+          desc: `${n} בישולים בקריירה (ראשון + שני)`,
+          earned: t.assists >= n,
+          have: t.assists,
+          need: n,
+        });
+        return [
+          {
+            icon: "⚽",
+            title: "שער ראשון במועדון",
+            desc: fg
+              ? `${fmtDate(fg.date, true)} מול ${fg.opponent || "יריבה"}`
+              : t.goals
+                ? "נרשם לפני תחילת המעקב"
+                : "מחכה לשער הראשון",
+            earned: t.goals >= 1,
+            have: t.goals,
+            need: 1,
+          },
+          tier(10),
+          tier(25),
+          tier(50),
+          {
+            icon: "🎩",
+            title: "גיבור השלושער",
+            desc: t.hat
+              ? `${t.hat > 1 ? `${t.hat} שלושערים` : "שלושער"} — 3+ שערים במשחק אחד`
+              : "3 שערים ומעלה במשחק אחד",
+            earned: t.hat >= 1,
+            have: t.hat,
+            need: 1,
+          },
+          {
+            icon: "🌟",
+            title: "מועדון המאה",
+            desc: "100 תרומות לשער — שערים ובישולים",
+            earned: t.contrib >= 100,
+            have: t.contrib,
+            need: 100,
+          },
+        ];
+      }
+
+      function renderProfile(pid) {
+        const p = DB.players.get(pid);
+        if (plView.pid !== pid) Object.assign(plView, { pid, q: "", f: "all" });
+        if (!p) {
+          document.title = `שחקן לא נמצא — ${TEAM.name}`;
+          view.innerHTML = `<div class="wrap"><a class="back-link" href="${esc(routeHref("stats"))}" data-route="stats">→ לכל הסטטיסטיקה</a>
+            ${emptyCard(statsLoaded ? "השחקן לא נמצא" : "טוען…", statsLoaded ? `אין אצלנו שחקן בשם "${pid}".` : "רגע אחד, מביאים את הנתונים.")}</div>`;
+          return;
+        }
+        document.title = `${p.name} — ${TEAM.name}`;
+        const t = careerOf(pid);
+        const L = DB.lines.get(pid);
+        const pic = photoFor(p);
+        const cpm = t.matches ? (t.contrib / t.matches).toFixed(2) : "—";
+        const seasons = L ? [...L.seasons].sort((a, b) => seasonSort(a[0], b[0])) : [];
+
+        view.innerHTML = `
+    <div class="wrap">
+      <a class="back-link" href="${esc(routeHref("stats"))}" data-route="stats">→ לכל הסטטיסטיקה</a>
+      <div class="pf-banner">
+        ${p.n !== "" ? `<span class="pf-bignum">${esc(p.n)}</span>` : ""}
+        <div class="pf-photo">${pic ? `<img src="${esc(pic)}" alt="${esc(p.name)}">` : `<span class="initials">${esc(initials(p.name))}</span>`}</div>
+        <div class="pf-name">
+          <h1>${esc(p.name)}</h1>
+          <div class="pf-meta">
+            ${p.n !== "" ? `<span class="pf-chip gold">#${esc(p.n)}</span>` : ""}
+            ${p.pos ? `<span class="pf-chip">${esc(p.pos)}</span>` : ""}
+            <span class="pf-chip">${p.status === "alumni" ? "🎓 בוגר המועדון" : "✅ בסגל הפעיל"}</span>
+            ${p.captain ? '<span class="pf-chip gold">קפטן</span>' : ""}
+            ${p.injured ? `<span class="pf-chip red">${esc(p.injured)}</span>` : ""}
+          </div>
+          <div class="pf-stats">
+            <div class="pf-stat"><b>${t.matches}</b><span>משחקים</span></div>
+            <div class="pf-stat"><b>${t.goals}</b><span>שערים</span></div>
+            <div class="pf-stat"><b>${t.assists}</b><span>בישולים</span><small>${t.a1} ראשון · ${t.a2} שני</small></div>
+            <div class="pf-stat"><b>${cpm}</b><span>תרומות למשחק</span><small>${t.contrib} סה״כ</small></div>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="st-h">🏅 תגים</h3>
+      <div class="badges">
+        ${badgesFor(pid, t)
+          .map(
+            (b) => `
+        <div class="badge-card${b.earned ? " earned" : ""}">
+          <div class="ico">${b.icon}</div>
+          <h4>${esc(b.title)}</h4>
+          <p>${esc(b.desc)}</p>
+          ${b.earned ? "" : `<div class="bar" title="${b.have}/${b.need}"><i style="width:${Math.min(100, Math.round((b.have / b.need) * 100))}%"></i></div><p>${b.have}/${b.need}</p>`}
+        </div>`,
+          )
+          .join("")}
+      </div>
+
+      ${
+        seasons.length
+          ? `
+      <h3 class="st-h">📅 לפי עונה</h3>
+      <div class="tbl-wrap season-tbl"><table>
+        <thead><tr><th>עונה</th><th>משחקים</th><th>שערים</th><th>בישול ראשון</th><th>בישול שני</th><th>תרומה</th></tr></thead>
+        <tbody>${seasons.map(([s, x]) => `<tr><td>${esc(s)}</td><td>${x.matches}</td><td>${x.goals}</td><td>${x.a1}</td><td>${x.a2}</td><td class="pts">${x.goals + x.a1 + x.a2}</td></tr>`).join("")}</tbody>
+      </table></div>`
+          : ""
+      }
+
+      <h3 class="st-h">📜 יומן משחקים</h3>
+      <div class="log-tools">
+        <input class="log-search" id="logSearch" type="search" placeholder="חיפוש לפי יריבה, תאריך או עונה…" value="${esc(plView.q)}">
+        <div class="filters" id="logFilter">
+          ${[["all", "הכל"], ["g", "⚽ עם שער"], ["a", "🎯 עם בישול"]].map(([k, l]) => `<button class="chip${plView.f === k ? " on" : ""}" data-logf="${k}">${l}</button>`).join("")}
+        </div>
+      </div>
+      <div class="match-list" id="pfLog"></div>
+    </div>`;
+        renderLog();
+      }
+
+      function renderLog() {
+        const box = $("#pfLog");
+        const L = DB.lines.get(plView.pid);
+        if (!box) return;
+        const q = plView.q.trim().toLowerCase();
+        const items = (L?.log || []).filter((it) => {
+          if (plView.f === "g" && !it.goals) return false;
+          if (plView.f === "a" && !(it.a1 + it.a2)) return false;
+          if (!q) return true;
+          const text =
+            it.type === "match"
+              ? [it.m.opponent, it.m.date, fmtDate(it.m.date), fmtDate(it.m.date, true), it.m.season, it.m.venue]
+              : [it.b.season, it.b.note, "היסטורי"];
+          return text.join(" ").toLowerCase().includes(q);
+        });
+        if (!items.length) {
+          box.innerHTML = `<div class="log-empty">${L?.log.length ? "אין משחקים שמתאימים לחיפוש." : "עוד לא נרשמו משחקים לשחקן הזה."}</div>`;
+          return;
+        }
+        box.innerHTML = items
+          .map((it) => {
+            const tags = [
+              it.goals ? `<span class="tag g">⚽ ${it.goals > 1 ? `×${it.goals}` : "שער"}</span>` : "",
+              it.hat ? `<span class="tag g">🎩 ${it.type === "hist" && it.hat > 1 ? `×${it.hat}` : "שלושער"}</span>` : "",
+              it.a1 ? `<span class="tag a">🎯 ${it.a1 > 1 ? `×${it.a1}` : "בישול"}</span>` : "",
+              it.a2 ? `<span class="tag a">↪ ${it.a2 > 1 ? `×${it.a2}` : "בישול שני"}</span>` : "",
+            ].join("");
+            if (it.type === "hist")
+              return `
+    <div class="match-row hist">
+      <div class="when"><b>📜</b><small>${esc(it.b.season || TRACK_START)}</small></div>
+      <div class="who"><b>רישום היסטורי</b><span>${it.matches} משחקים${it.b.note ? ` · ${esc(it.b.note)}` : ""}</span></div>
+      <div class="log-tags">${tags || '<span class="tag">ללא שערים ובישולים</span>'}</div>
+    </div>`;
+            const m = it.m;
+            return matchRowHtml(m, tags).replace(
+              'class="match-row"',
+              `class="match-row${tags ? "" : " quiet"}"`,
+            );
+          })
+          .join("");
+      }
+
+      /* ---------- /live — רישום מהקו ---------- */
+      const live = {
+        overlay: null /* {mode:'goal', step, scorer, a1, a2, og} | {mode:'lineup', sel:Set} */,
+        undo: null /* {id, label, until} */,
+        setup: null,
+        summary: null,
+        tick: null,
+        wake: null,
+      };
+      const MS = {
+        goals: [1, 10, 25, 50, 75, 100, 150, 200, 300],
+        assists: [10, 25, 50, 75, 100, 150, 200],
+        contrib: [50, 100, 150, 200, 300],
+        matches: [10, 25, 50, 100, 150, 200, 300],
+      };
+
+      const activeRoster = () =>
+        [...DB.players.values()].filter((p) => p.status === "active").sort(byShirt);
+      const liveMatch = () => {
+        const mid = store.get(SK.live, null);
+        return mid ? DB.matches.find((m) => m.mid === mid && !m.ended) : null;
+      };
+
+      function leaveLive() {
+        clearInterval(live.tick);
+        live.tick = null;
+        live.overlay = null;
+        live.wake?.release?.().catch(() => {});
+        live.wake = null;
+        if ($("#liveOverlay")) $("#liveOverlay").innerHTML = "";
+      }
+
+      function updateSync() {
+        const el = $("#syncBadge");
+        if (!el) return;
+        const pending = localEvents.filter((e) => !e._sent).length;
+        if (!CL.on) {
+          el.className = "sync bad";
+          el.textContent = "📱 נשמר במכשיר בלבד";
+        } else if (pending) {
+          el.className = "sync wait";
+          el.textContent = lastSyncOk ? `⏳ שולח ${pending}…` : `⏳ ${pending} ממתינים לקליטה`;
+        } else {
+          el.className = "sync ok";
+          el.textContent = "☁ מסונכרן";
+        }
+      }
+
+      function lockScreen(what) {
+        return `
+    <div class="live-lock">
+      <div class="ico">🔒</div>
+      <h2>${what} נעול</h2>
+      <p style="color:var(--txt-dim)">צריך את קוד העריכה של האתר.</p>
+      <button class="btn btn-main" data-act="auth">הזנת קוד</button>
+      <a class="btn btn-ghost" href="${esc(routeHref("stats"))}" data-route="stats">חזרה לסטטיסטיקה</a>
+    </div>`;
+      }
+
+      function renderLive() {
+        document.title = `רישום מהקו — ${TEAM.name}`;
+        if (!gate.authed) {
+          view.innerHTML = `<div class="live">${lockScreen("מצב הקו")}</div>`;
+          return;
+        }
+        const m = liveMatch();
+        if (m) {
+          live.summary = null;
+          view.innerHTML = liveScreenHtml(m);
+          startLiveTimers();
+        } else if (live.summary) {
+          view.innerHTML = summaryHtml(DB.matches.find((x) => x.mid === live.summary));
+        } else {
+          view.innerHTML = setupHtml();
+        }
+        renderOverlay();
+        updateSync();
+      }
+
+      function startLiveTimers() {
+        if (!live.tick) live.tick = setInterval(tickUndo, 1000);
+        tickUndo();
+        if (!live.wake && navigator.wakeLock)
+          navigator.wakeLock
+            .request("screen")
+            .then((w) => (live.wake = w))
+            .catch(() => {});
+      }
+
+      function tickUndo() {
+        const box = $("#undoBox");
+        if (!box) return;
+        const left = live.undo ? Math.ceil((live.undo.until - Date.now()) / 1000) : 0;
+        if (left <= 0) {
+          live.undo = null;
+          box.innerHTML = "";
+          return;
+        }
+        const cd = $("#undoCd");
+        if (cd) cd.textContent = `0:${String(left).padStart(2, "0")}`;
+        else
+          box.innerHTML = `
+      <button class="undo-bar" data-act="undo">
+        <span>↶ ביטול הפעולה האחרונה<small>${esc(live.undo.label)}</small></span>
+        <span class="cd" id="undoCd">0:${String(left).padStart(2, "0")}</span>
+      </button>`;
+      }
+
+      function setupHtml() {
+        const roster = activeRoster();
+        if (!live.setup) {
+          live.setup = {
+            opponent: NEXT_MATCH?.opponent || "",
+            venue: NEXT_MATCH?.venue || "",
+            date: todayISO(),
+            season: "",
+            sel: new Set(roster.filter((p) => !p.injured).map((p) => p.pid)),
+          };
+        }
+        const s = live.setup;
+        const open = DB.matches.filter((m) => !m.ended);
+        return `
+    <div class="live">
+      <div class="live-top">
+        <a class="icon-btn" href="${esc(routeHref("stats"))}" data-route="stats" aria-label="יציאה">→</a>
+        <div class="ttl">🎛️ רישום מהקו<small>${esc(TEAM.name)}</small></div>
+        <span class="sync" id="syncBadge"></span>
+      </div>
+      ${CL.on ? "" : '<div class="live-note">האחסון בענן לא מוגדר — מה שיירשם יישמר רק במכשיר הזה.</div>'}
+      ${
+        open.length
+          ? `<div class="open-matches">${open.map((m) => `<button data-act="resume" data-mid="${esc(m.mid)}"><span>▶ המשך: מול ${esc(m.opponent)} · ${esc(fmtDate(m.date))}</span><span>${m.us}–${m.them}</span></button>`).join("")}</div>`
+          : ""
+      }
+      <h2>משחק חדש</h2>
+      <div class="field"><label for="lvOpp">יריבה</label>
+        <input id="lvOpp" data-setup="opponent" list="lvOppList" value="${esc(s.opponent)}" placeholder="שם הקבוצה היריבה" autocomplete="off">
+        <datalist id="lvOppList">${DB.opponents.map((o) => `<option value="${esc(o)}">`).join("")}</datalist>
+      </div>
+      <div class="row2">
+        <div class="field"><label for="lvDate">תאריך</label><input id="lvDate" type="date" data-setup="date" value="${esc(s.date)}"></div>
+        <div class="field"><label for="lvSeason">עונה</label><input id="lvSeason" data-setup="season" value="${esc(s.season)}" placeholder="${esc(seasonOf(s.date) || "2026/27")}"></div>
+      </div>
+      <div class="field"><label for="lvVenue">מגרש</label><input id="lvVenue" data-setup="venue" value="${esc(s.venue)}" placeholder="אופציונלי"></div>
+      <div class="lineup-head">
+        <b>מי משחק היום?</b>
+        <span>${s.sel.size} נבחרו · <button class="mini-btn" data-act="selAll">${s.sel.size === roster.length ? "ניקוי" : "כולם"}</button></span>
+      </div>
+      <div class="pick-grid" style="flex:none">
+        ${roster.map((p) => pickTile(p, s.sel.has(p.pid) ? "on" : "off", "toggleSetup")).join("")}
+      </div>
+      <p class="pick-note">רק מי שמסומן יופיע בבחירת הכובש והמבשל. אפשר לשנות גם באמצע המשחק.</p>
+      <button class="btn btn-main big-ok" data-act="start">▶ פתיחת המשחק</button>
+    </div>`;
+      }
+
+      function pickTile(p, cls, act) {
+        return `<button class="pick ${cls || ""}" data-act="${act}" data-pid="${esc(p.pid)}">
+          <b>${p.n !== "" ? esc(p.n) : "–"}</b><span>${esc(p.name)}</span></button>`;
+      }
+
+      function liveScreenHtml(m) {
+        const feed = [
+          ...m.goals.map((g) => ({ e: g, us: true })),
+          ...m.against.map((g) => ({ e: g, us: false })),
+        ].sort((a, b) => b.e.at - a.e.at);
+        const hhmm = (t) =>
+          new Date(t).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+        return `
+    <div class="live">
+      <div class="live-top">
+        <a class="icon-btn" href="${esc(routeHref("stats"))}" data-route="stats" aria-label="יציאה (המשחק נשאר פתוח)">→</a>
+        <div class="ttl">מול ${esc(m.opponent)}<small>${esc(fmtDate(m.date, true))} · ${m.lineup.length} בהרכב</small></div>
+        <span class="sync" id="syncBadge"></span>
+      </div>
+      <div class="board">
+        <div class="team">${esc(TEAM.name)}</div>
+        <div class="score">${m.them}<i>:</i>${m.us}</div>
+        <div class="team">${esc(m.opponent)}</div>
+      </div>
+      <div id="undoBox"></div>
+      <div class="feed">
+        ${
+          feed.length
+            ? feed
+                .map(({ e, us }) =>
+                  us
+                    ? `<div class="feed-item"><span>⚽</span><div><b>${e.og ? "שער עצמי של היריבה" : esc(shortName(e.scorer))}</b>${e.a1 ? `<small>🎯 ${esc(nameOf(e.a1))}${e.a2 ? ` · ↪ ${esc(nameOf(e.a2))}` : ""}</small>` : e.og ? "" : "<small>סולו</small>"}</div><span class="t">${hhmm(e.at)}</span></div>`
+                    : `<div class="feed-item them"><span>🥅</span><div>שער ל${esc(m.opponent)}</div><span class="t">${hhmm(e.at)}</span></div>`,
+                )
+                .join("")
+            : '<div class="feed-empty">עוד אין שערים. בהצלחה! 🖤🧡❤️</div>'
+        }
+      </div>
+      <button class="goal-btn" data-act="goal">⚽ שער!</button>
+      <div class="live-row">
+        <button class="btn btn-ghost" data-act="against">🥅 שער ליריבה</button>
+        <button class="btn btn-ghost" data-act="lineup">👥 הרכב</button>
+        <button class="btn btn-ghost" data-act="end">🏁 סיום</button>
+      </div>
+    </div>`;
+      }
+
+      function summaryHtml(m) {
+        if (!m) return setupHtml();
+        return `
+    <div class="live">
+      <div class="live-top">
+        <a class="icon-btn" href="${esc(routeHref("stats"))}" data-route="stats" aria-label="יציאה">→</a>
+        <div class="ttl">המשחק הסתיים<small>${esc(fmtDate(m.date, true))}</small></div>
+        <span class="sync" id="syncBadge"></span>
+      </div>
+      <div class="board">
+        <div class="team">${esc(TEAM.name)}</div>
+        <div class="score">${m.them}<i>:</i>${m.us}</div>
+        <div class="team">${esc(m.opponent)}</div>
+      </div>
+      <div class="match-list">${matchRowHtml(m)}</div>
+      <a class="btn btn-main big-ok" href="${esc(routeHref("stats"))}" data-route="stats">📊 לטבלת כל הזמנים</a>
+      <button class="btn btn-ghost btn-wide" data-act="newMatch">משחק חדש</button>
+    </div>`;
+      }
+
+      function renderOverlay() {
+        const box = $("#liveOverlay");
+        const o = live.overlay;
+        const m = liveMatch();
+        if (!o || !m) return (box.innerHTML = "");
+        const lineup = m.lineup
+          .map((pid) => DB.players.get(pid) || { pid, name: pid, n: "" })
+          .sort(byShirt);
+
+        if (o.mode === "lineup") {
+          const roster = activeRoster();
+          /* מי שכבר בהרכב נשאר ברשימה גם אם הפך בינתיים ללא-פעיל */
+          lineup.forEach((p) => roster.some((r) => r.pid === p.pid) || roster.push(p));
+          box.innerHTML = `
+      <div class="picker"><div class="picker-in">
+        <div class="pick-head"><h3>👥 מי על המגרש?</h3><button class="icon-btn" data-act="close" aria-label="סגירה">✕</button></div>
+        <p class="pick-note">${o.sel.size} נבחרו. מי שלא מסומן לא יופיע בבחירת הכובש.</p>
+        <div class="pick-grid">${roster.map((p) => pickTile(p, o.sel.has(p.pid) ? "on" : "off", "toggleLineup")).join("")}</div>
+        <button class="btn btn-main big-ok" data-act="saveLineup">שמירת ההרכב</button>
+      </div></div>`;
+          return;
+        }
+
+        const steps = ["scorer", "a1", "a2", "confirm"];
+        const at = steps.indexOf(o.step);
+        const dots = steps.map((s, i) => `<i class="${i <= at ? "on" : ""}"></i>`).join("");
+        const c = (pid) => careerOf(pid);
+        const exclude = new Set([o.scorer, o.a1].filter(Boolean));
+        const grid = (act) =>
+          lineup
+            .filter((p) => !exclude.has(p.pid))
+            .map((p) => pickTile(p, "", act))
+            .join("");
+        const head = (title) => `
+        <div class="pick-head">
+          ${at ? '<button class="icon-btn" data-act="back" aria-label="חזרה">→</button>' : ""}
+          <h3>${title}</h3>
+          <div class="steps">${dots}</div>
+          <button class="icon-btn" data-act="close" aria-label="ביטול">✕</button>
+        </div>`;
+        const scorerNote = o.og
+          ? "שער עצמי — נספר בתוצאה, בלי קרדיט לשחקן"
+          : `<b>${esc(nameOf(o.scorer))}</b>: ${c(o.scorer).goals} ← <b>${c(o.scorer).goals + 1}</b> שערים בקריירה`;
+
+        let inner;
+        if (o.step === "scorer") {
+          inner = `${head("⚽ מי כבש?")}
+        <p class="pick-note">${esc(m.us + 1 + "–" + m.them)} · הקשה על השחקן</p>
+        <div class="pick-grid">${grid("pickScorer")}
+          <button class="pick alt" data-act="og">🙃 שער עצמי של היריבה</button></div>`;
+        } else if (o.step === "a1") {
+          inner = `${head("🎯 בישול ראשון")}
+        <p class="pick-note">${scorerNote}</p>
+        <div class="pick-grid"><button class="pick alt" data-act="solo">🏃 ללא בישול / סולו</button>${grid("pickA1")}</div>`;
+        } else if (o.step === "a2") {
+          inner = `${head("↪ בישול שני")}
+        <p class="pick-note">${scorerNote} · 🎯 ${esc(nameOf(o.a1))}</p>
+        <div class="pick-grid"><button class="pick alt" data-act="noA2">ללא בישול שני</button>${grid("pickA2")}</div>`;
+        } else {
+          const line = (label, pid, key, one, many) => {
+            const n = c(pid)[key] + 1;
+            return `<div class="confirm-line"><div><span>${label}</span><br><b>${esc(shortName(pid))}</b></div><small>${n === 1 ? `${one} ראשון` : `${n} ${many}`} בקריירה</small></div>`;
+          };
+          inner = `${head("✓ אישור")}
+        <div class="confirm-list">
+          ${o.og ? '<div class="confirm-line"><div><span>כובש</span><br><b>שער עצמי של היריבה</b></div></div>' : line("כובש", o.scorer, "goals", "שער", "שערים")}
+          ${o.a1 ? line("בישול ראשון", o.a1, "assists", "בישול", "בישולים") : o.og ? "" : '<div class="confirm-line"><div><span>בישול</span><br><b>סולו</b></div></div>'}
+          ${o.a2 ? line("בישול שני", o.a2, "assists", "בישול", "בישולים") : ""}
+          <div class="confirm-line"><div><span>תוצאה אחרי השער</span><br><b>${m.us + 1}–${m.them}</b></div></div>
+        </div>
+        <button class="btn btn-main big-ok" data-act="commit">✓ אישור ורישום</button>`;
+        }
+        box.innerHTML = `<div class="picker"><div class="picker-in">${inner}</div></div>`;
+      }
+
+      /* ---------- אבני דרך ---------- */
+      function milestonesFor(pid, before, after) {
+        if (!pid) return [];
+        const name = nameOf(pid);
+        const out = [];
+        const crossed = (k) => MS[k].filter((n) => before[k] < n && after[k] >= n);
+        crossed("goals").forEach((n) =>
+          out.push(
+            n === 1
+              ? { ico: "⚽", title: `שער ראשון במועדון ל${name}!`, text: "הראשון מתוך הרבה, מקווים." }
+              : { ico: "⚽", title: `${n} שערים בקריירה ל${name}!`, text: "אבן דרך חדשה בהיסטוריה של הקבוצה." },
+          ),
+        );
+        crossed("assists").forEach((n) =>
+          out.push({ ico: "🎯", title: `${n} בישולים בקריירה ל${name}!`, text: `תג "פליימייקר ${n}" נפתח.` }),
+        );
+        crossed("contrib").forEach((n) =>
+          out.push(
+            n === 100
+              ? { ico: "🌟", title: `${name} במועדון המאה!`, text: "100 תרומות לשער — שערים ובישולים." }
+              : { ico: "🌟", title: `${n} תרומות לשער ל${name}!`, text: "שערים ובישולים, בכל הזמנים." },
+          ),
+        );
+        crossed("matches").forEach((n) =>
+          out.push({ ico: "👕", title: `משחק מספר ${n} ל${name}!`, text: `${n} הופעות במדי ${TEAM.name}.` }),
+        );
+        return out;
+      }
+
+      const msQueue = [];
+      function showMilestones(list) {
+        if (!list.length) return;
+        msQueue.push(...list);
+        if (!$(".milestone")) nextMilestone();
+      }
+      function nextMilestone() {
+        const m = msQueue.shift();
+        if (!m) return;
+        vibrate([40, 60, 40]);
+        const el = document.createElement("div");
+        el.className = "milestone";
+        el.innerHTML = `<div class="milestone-card"><div class="eyebrow">אבן דרך</div><div class="ico">${m.ico}</div><h3>${esc(m.title)}</h3><p>${esc(m.text)}</p></div>`;
+        const done = () => {
+          if (!el.isConnected) return;
+          el.remove();
+          nextMilestone();
+        };
+        el.addEventListener("click", done);
+        setTimeout(done, 4500);
+        document.body.appendChild(el);
+      }
+
+      function snapshot(pids) {
+        const out = new Map();
+        pids.filter(Boolean).forEach((pid) => out.set(pid, careerOf(pid)));
+        return out;
+      }
+      function recordWithMilestones(kind, data, pids) {
+        const before = snapshot(pids);
+        const e = record(kind, data);
+        const found = [];
+        before.forEach((b, pid) => found.push(...milestonesFor(pid, b, careerOf(pid))));
+        return { e, found };
+      }
+
+      /* ---------- פעולות במצב קו ---------- */
+      async function liveAction(act, el) {
+        const m = liveMatch();
+        const o = live.overlay;
+        vibrate();
+        switch (act) {
+          case "auth":
+            gate.authed = mayEdit();
+            return renderRoute();
+          case "toggleSetup": {
+            const s = live.setup;
+            s.sel.has(el.dataset.pid) ? s.sel.delete(el.dataset.pid) : s.sel.add(el.dataset.pid);
+            return renderLive();
+          }
+          case "selAll": {
+            const roster = activeRoster();
+            const s = live.setup;
+            s.sel = s.sel.size === roster.length ? new Set() : new Set(roster.map((p) => p.pid));
+            return renderLive();
+          }
+          case "start": {
+            const s = live.setup;
+            if (!s.opponent.trim()) {
+              showToast("צריך לכתוב מול מי משחקים", "bad");
+              return $("#lvOpp")?.focus();
+            }
+            if (!s.sel.size) return showToast("צריך לבחור לפחות שחקן אחד להרכב", "bad");
+            const mid = uid();
+            const lineup = [...s.sel];
+            store.set(SK.live, mid);
+            const { found } = recordWithMilestones(
+              "match",
+              {
+                mid,
+                date: s.date || todayISO(),
+                season: s.season.trim() || seasonOf(s.date),
+                opponent: s.opponent.trim(),
+                venue: s.venue.trim(),
+                lineup,
+                ended: false,
+              },
+              lineup,
+            );
+            live.setup = null;
+            renderLive();
+            showMilestones(found);
+            return;
+          }
+          case "resume":
+            store.set(SK.live, el.dataset.mid);
+            return renderLive();
+          case "newMatch":
+            live.summary = null;
+            return renderLive();
+          case "goal":
+            live.overlay = { mode: "goal", step: "scorer" };
+            return renderOverlay();
+          case "pickScorer":
+            Object.assign(o, { scorer: el.dataset.pid, og: false, step: "a1" });
+            return renderOverlay();
+          case "og":
+            Object.assign(o, { scorer: null, og: true, a1: null, a2: null, step: "confirm" });
+            return renderOverlay();
+          case "pickA1":
+            Object.assign(o, { a1: el.dataset.pid, step: "a2" });
+            return renderOverlay();
+          case "solo":
+            Object.assign(o, { a1: null, a2: null, step: "confirm" });
+            return renderOverlay();
+          case "pickA2":
+            Object.assign(o, { a2: el.dataset.pid, step: "confirm" });
+            return renderOverlay();
+          case "noA2":
+            Object.assign(o, { a2: null, step: "confirm" });
+            return renderOverlay();
+          case "back": {
+            if (o.step === "confirm") o.step = o.og ? "scorer" : o.a1 ? "a2" : "a1";
+            else if (o.step === "a2") o.step = "a1";
+            else o.step = "scorer";
+            if (o.step === "scorer") Object.assign(o, { scorer: null, og: false });
+            if (o.step !== "a2") o.a1 = null;
+            o.a2 = null;
+            return renderOverlay();
+          }
+          case "close":
+            live.overlay = null;
+            return renderOverlay();
+          case "commit": {
+            if (!m || o?.mode !== "goal") return;
+            const pids = [o.scorer, o.a1, o.a2];
+            const { e, found } = recordWithMilestones(
+              "goal",
+              { mid: m.mid, scorer: o.scorer || null, a1: o.a1 || null, a2: o.a2 || null, og: !!o.og },
+              pids,
+            );
+            if (o.scorer) {
+              const inMatch = liveMatch().goals.filter((g) => g.scorer === o.scorer).length;
+              if (inMatch === 3)
+                found.unshift({ ico: "🎩", title: `שלושער ל${nameOf(o.scorer)}!`, text: "3 שערים במשחק אחד — תג \"גיבור השלושער\" נפתח." });
+            }
+            live.undo = {
+              id: e.id,
+              label: o.og ? "שער עצמי של היריבה" : `שער של ${nameOf(o.scorer)}`,
+              until: Date.now() + 60000,
+            };
+            live.overlay = null;
+            renderLive();
+            showMilestones(found);
+            return;
+          }
+          case "against": {
+            if (!m) return;
+            const e = record("against", { mid: m.mid });
+            live.undo = { id: e.id, label: `שער ל${m.opponent}`, until: Date.now() + 60000 };
+            renderLive();
+            return;
+          }
+          case "undo": {
+            if (!live.undo || Date.now() > live.undo.until) return;
+            record("void", { target: live.undo.id });
+            live.undo = null;
+            renderLive();
+            showToast("↶ הפעולה בוטלה — המונים עודכנו");
+            return;
+          }
+          case "lineup":
+            live.overlay = { mode: "lineup", sel: new Set(m?.lineup || []) };
+            return renderOverlay();
+          case "toggleLineup":
+            o.sel.has(el.dataset.pid) ? o.sel.delete(el.dataset.pid) : o.sel.add(el.dataset.pid);
+            return renderOverlay();
+          case "saveLineup": {
+            if (!m) return;
+            if (!o.sel.size) return showToast("צריך לפחות שחקן אחד בהרכב", "bad");
+            const added = [...o.sel].filter((p) => !m.lineup.includes(p));
+            const { found } = recordWithMilestones("match", { mid: m.mid, lineup: [...o.sel] }, added);
+            live.overlay = null;
+            renderLive();
+            showToast("👥 ההרכב עודכן");
+            showMilestones(found);
+            return;
+          }
+          case "end": {
+            if (!m || !armed(el, "לחצו שוב לסיום")) return;
+            record("match", { mid: m.mid, ended: true });
+            store.set(SK.live, null);
+            live.summary = m.mid;
+            live.undo = null;
+            renderLive();
+            showToast("🏁 המשחק נשמר בהיסטוריה");
+            return;
+          }
+        }
+      }
+
+      view.addEventListener("click", (e) => {
+        const f = e.target.closest("[data-scope], [data-ladder], [data-logf]");
+        if (f) {
+          if (f.dataset.scope !== undefined) stView.scope = f.dataset.scope;
+          if (f.dataset.ladder) stView.ladder = f.dataset.ladder;
+          if (f.dataset.logf) {
+            plView.f = f.dataset.logf;
+            $$("#logFilter .chip").forEach((c) => c.classList.toggle("on", c === f));
+            return renderLog();
+          }
+          return renderStatsPage();
+        }
+        const btn = e.target.closest("[data-act]");
+        if (btn) {
+          if (routeParts()[0] === "admin") adminAction(btn.dataset.act, btn);
+          else liveAction(btn.dataset.act, btn);
+        }
+      });
+      $("#liveOverlay").addEventListener("click", (e) => {
+        const btn = e.target.closest("[data-act]");
+        if (btn) liveAction(btn.dataset.act, btn);
+      });
+      view.addEventListener("input", (e) => {
+        if (e.target.id === "logSearch") {
+          plView.q = e.target.value;
+          return renderLog();
+        }
+        const k = e.target.dataset.setup;
+        if (k && live.setup) {
+          live.setup[k] = e.target.value;
+          if (k === "date") $("#lvSeason").placeholder = seasonOf(e.target.value) || "";
+        }
+      });
+
+      /* ---------- /admin — ניהול ---------- */
+      const admOpen = new Set();
+
+      function renderAdmin() {
+        document.title = `ניהול סטטיסטיקה — ${TEAM.name}`;
+        if (!gate.authed) {
+          view.innerHTML = `<div class="wrap">${lockScreen("הניהול")}</div>`;
+          return;
+        }
+        view.innerHTML = `
+    <div class="wrap">
+      <a class="back-link" href="${esc(routeHref("stats"))}" data-route="stats">→ לכל הסטטיסטיקה</a>
+      <div class="sec-head">
+        <p class="eyebrow">⚙️ ניהול</p>
+        <h2>ניהול הסטטיסטיקה</h2>
+        <p>הזנת נתונים ממשחקים שלפני המעקב, ניהול מי בסגל הפעיל ותיקון משחקים שנרשמו מהקו.</p>
+      </div>
+      ${CL.on ? "" : '<div class="live-note" style="margin-bottom:20px">האחסון בענן לא מוגדר — שינויים יישמרו רק במכשיר הזה.</div>'}
+
+      <div class="adm-card">
+        <h3>📜 הזנת נתונים היסטוריים</h3>
+        <p>סטטיסטיקה מעונות קודמות או מטורנירים שהיו לפני שהמעקב עלה לאוויר. הרישום נכנס לסיכום הקריירה ולטבלאות, ומופיע ביומן המשחקים של השחקן.</p>
+        <form id="bfForm" autocomplete="off">
+          <div class="field"><label for="bfPlayer">שחקן</label><select id="bfPlayer" required></select></div>
+          <div class="grid-fields">
+            <div class="field"><label for="bfSeason">עונה / תקופה</label><input id="bfSeason" list="bfSeasons" placeholder="2025/26"><datalist id="bfSeasons"></datalist></div>
+            <div class="field"><label for="bfMatches">משחקים</label><input id="bfMatches" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+            <div class="field"><label for="bfGoals">שערים</label><input id="bfGoals" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+            <div class="field"><label for="bfA1">בישול ראשון</label><input id="bfA1" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+            <div class="field"><label for="bfA2">בישול שני</label><input id="bfA2" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+            <div class="field"><label for="bfHat">שלושערים</label><input id="bfHat" type="number" min="0" inputmode="numeric" placeholder="0"></div>
+          </div>
+          <div class="field"><label for="bfNote">הערה</label><input id="bfNote" placeholder="למשל: טורניר הקיץ 2025 (אופציונלי)"></div>
+          <button class="btn btn-main btn-wide" type="submit">שמירת הרישום</button>
+        </form>
+        <div class="adm-list" id="bfList"></div>
+      </div>
+
+      <div class="adm-card">
+        <h3>👥 ניהול סגל</h3>
+        <p>שחקן "בוגר" נשאר בטבלאות של כל הזמנים ושומר על כרטיס הקריירה שלו, אבל לא מופיע בבחירת ההרכב והכובשים בזמן משחק.</p>
+        <div class="adm-list" id="rosterList"></div>
+        <details id="addPlayer">
+          <summary>+ הוספת שחקן (למשל בוגר מלפני האתר)</summary>
+          <form id="npForm" autocomplete="off" style="margin-top:14px">
+            <div class="grid-fields">
+              <div class="field"><label for="npName">שם</label><input id="npName" required></div>
+              <div class="field"><label for="npNum">מספר</label><input id="npNum" type="number" min="0" inputmode="numeric"></div>
+              <div class="field"><label for="npPos">עמדה</label><input id="npPos"></div>
+              <div class="field"><label for="npStatus">סטטוס</label><select id="npStatus"><option value="alumni">בוגר / פרש</option><option value="active">פעיל</option></select></div>
+            </div>
+            <button class="btn btn-ghost btn-wide" type="submit">הוספה</button>
+          </form>
+        </details>
+      </div>
+
+      <div class="adm-card">
+        <h3>🗓️ משחקים שנרשמו מהקו</h3>
+        <p>לתיקון טעות שהתגלתה אחרי חלון הביטול של 60 שניות — מוחקים את השער הלא נכון ורושמים מחדש מהקו.</p>
+        <div class="adm-list" id="matchAdm"></div>
+      </div>
+    </div>`;
+        renderAdminLists();
+      }
+
+      function renderAdminLists() {
+        if (!gate.authed || !$("#bfList")) return renderAdmin();
+        const all = [...DB.players.values()].sort(
+          (a, b) => (a.status === b.status ? 0 : a.status === "active" ? -1 : 1) || byShirt(a, b),
+        );
+        const sel = $("#bfPlayer");
+        const cur = sel.value;
+        sel.innerHTML =
+          '<option value="">בחירת שחקן…</option>' +
+          all.map((p) => `<option value="${esc(p.pid)}">${esc(shortName(p.pid))}${p.status === "alumni" ? " (בוגר)" : ""}</option>`).join("");
+        sel.value = cur;
+        $("#bfSeasons").innerHTML = DB.seasons.map((s) => `<option value="${esc(s)}">`).join("");
+
+        const fills = DB.backfill.filter((b) => DB.players.has(b.pid));
+        $("#bfList").innerHTML = fills.length
+          ? fills
+              .slice()
+              .reverse()
+              .map(
+                (b) => `
+      <div class="adm-row">
+        <div class="grow"><b>${esc(nameOf(b.pid))}</b> · ${esc(b.season || TRACK_START)}
+          <small>${+b.matches || 0} משחקים · ${+b.goals || 0} שערים · ${+b.a1 || 0} בישול ראשון · ${+b.a2 || 0} בישול שני${+b.hat ? ` · ${+b.hat} שלושערים` : ""}${b.note ? ` · ${esc(b.note)}` : ""}</small></div>
+        <button class="mini-btn danger" data-act="delBf" data-id="${esc(b.id)}">מחיקה</button>
+      </div>`,
+              )
+              .join("")
+          : "";
+
+        $("#rosterList").innerHTML = all
+          .map(
+            (p) => `
+      <div class="adm-row">
+        <div class="grow"><b>${esc(shortName(p.pid))}</b>
+          <small>${esc(p.pos || "—")}${p.squadIndex >= 0 ? " · מהסגל באתר" : ""}${p.injured ? ` · ${esc(p.injured)}` : ""}</small></div>
+        <div class="seg">
+          <button class="${p.status === "active" ? "on" : ""}" data-act="status" data-pid="${esc(p.pid)}" data-status="active">פעיל</button>
+          <button class="${p.status === "alumni" ? "on" : ""}" data-act="status" data-pid="${esc(p.pid)}" data-status="alumni">בוגר / פרש</button>
+        </div>
+      </div>`,
+          )
+          .join("");
+
+        $("#matchAdm").innerHTML = DB.matches.length
+          ? DB.matches
+              .map(
+                (m) => `
+      <div class="adm-row">
+        <details class="grow" data-mid="${esc(m.mid)}"${admOpen.has(m.mid) ? " open" : ""}>
+          <summary style="color:var(--txt)">${esc(fmtDate(m.date))} · מול ${esc(m.opponent)} · <b>${m.us}–${m.them}</b>${m.ended ? "" : ' · <span style="color:#ff9aa4">פתוח</span>'}</summary>
+          <div class="adm-goals">
+            ${m.goals.map((g) => `<div><span>⚽ ${g.og ? "שער עצמי" : esc(nameOf(g.scorer))}${g.a1 ? ` · 🎯 ${esc(nameOf(g.a1))}` : ""}${g.a2 ? ` · ↪ ${esc(nameOf(g.a2))}` : ""}</span><button class="mini-btn danger" data-act="delEv" data-id="${esc(g.id)}">מחיקה</button></div>`).join("")}
+            ${m.against.map((g) => `<div><span>🥅 שער ליריבה</span><button class="mini-btn danger" data-act="delEv" data-id="${esc(g.id)}">מחיקה</button></div>`).join("")}
+            <div><span style="color:var(--txt-dim)">בהרכב: ${m.lineup.map((p) => esc(nameOf(p))).join(", ") || "—"}</span></div>
+          </div>
+        </details>
+        <button class="mini-btn" data-act="openLive" data-mid="${esc(m.mid)}">פתיחה בקו</button>
+        <button class="mini-btn danger" data-act="delMatch" data-mid="${esc(m.mid)}">מחיקת משחק</button>
+      </div>`,
+              )
+              .join("")
+          : '<div class="log-empty">עוד לא נרשמו משחקים מהקו.</div>';
+      }
+
+      function adminAction(act, el) {
+        if (act === "auth") {
+          gate.authed = mayEdit();
+          return renderRoute();
+        }
+        if (act === "status") {
+          const p = DB.players.get(el.dataset.pid);
+          if (!p || p.status === el.dataset.status) return;
+          record("roster", { pid: p.pid, status: el.dataset.status });
+          showToast(el.dataset.status === "alumni" ? `${p.name} סומן כבוגר המועדון` : `${p.name} חזר לסגל הפעיל`);
+        } else if (act === "delBf" || act === "delEv") {
+          if (!armed(el, "בטוח?")) return;
+          record("void", { target: el.dataset.id });
+          showToast("נמחק — הסיכומים עודכנו");
+        } else if (act === "delMatch") {
+          if (!armed(el, "למחוק את כל המשחק?")) return;
+          record("void", { target: el.dataset.mid });
+          if (store.get(SK.live, null) === el.dataset.mid) store.set(SK.live, null);
+          showToast("המשחק נמחק מההיסטוריה");
+        } else if (act === "openLive") {
+          const m = DB.matches.find((x) => x.mid === el.dataset.mid);
+          if (m?.ended) record("match", { mid: m.mid, ended: false });
+          store.set(SK.live, el.dataset.mid);
+          go("live");
+        }
+      }
+
+      view.addEventListener("toggle", (e) => {
+        const d = e.target.closest?.("details[data-mid]");
+        if (d) d.open ? admOpen.add(d.dataset.mid) : admOpen.delete(d.dataset.mid);
+      }, true);
+
+      view.addEventListener("submit", (e) => {
+        e.preventDefault();
+        const num = (id) => Math.max(0, Math.floor(Number($(id).value) || 0));
+        if (e.target.id === "bfForm") {
+          const pid = $("#bfPlayer").value;
+          const x = { matches: num("#bfMatches"), goals: num("#bfGoals"), a1: num("#bfA1"), a2: num("#bfA2"), hat: num("#bfHat") };
+          if (!pid) return showToast("צריך לבחור שחקן", "bad");
+          if (!Object.values(x).some(Boolean)) return showToast("צריך למלא לפחות מספר אחד", "bad");
+          if (x.hat * 3 > x.goals) return showToast("יותר שלושערים ממה שהשערים מאפשרים", "bad");
+          record("backfill", { pid, season: $("#bfSeason").value.trim() || TRACK_START, note: $("#bfNote").value.trim(), ...x });
+          ["#bfMatches", "#bfGoals", "#bfA1", "#bfA2", "#bfHat", "#bfNote"].forEach((s) => ($(s).value = ""));
+          showToast(`📜 נשמר רישום היסטורי ל${nameOf(pid)}`);
+        } else if (e.target.id === "npForm") {
+          const name = $("#npName").value.trim();
+          if (!name) return;
+          if (DB.players.has(name)) return showToast("כבר יש שחקן בשם הזה", "bad");
+          record("player", { name, n: $("#npNum").value.trim(), pos: $("#npPos").value.trim(), status: $("#npStatus").value });
+          e.target.reset();
+          showToast(`${name} נוסף`);
+        }
+      });
+
       /* ===================== הפעלה ===================== */
       renderNews();
       renderSquad();
+      renderTableSection();
+      renderRoute();
       renderStaff();
       renderPodcast();
       renderMedia();
       loadGallery();
       loadCloudContent();
+      loadStatsRemote();
+      flushOutbox();
+      /* רענון שקט — כדי ששער שנרשם בטלפון אחר יופיע גם כאן */
+      setInterval(() => document.hidden || loadStatsRemote(), 60000);
     </script>
   </body>
 </html>

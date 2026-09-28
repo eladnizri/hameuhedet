@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>המאוחדת</title>
+    <script>
+      /* GitHub Pages מגיש את הקובץ הזה לכל כתובת שאין לה קובץ משלה.
+   לכתובות של האתר (/stats, /players/<שם>, /live, /admin) מחזירים
+   לדף הראשי, שמציג את העמוד הנכון ומחזיר את הכתובת היפה. */
+      var m = location.pathname.match(
+        /^(.*?\/)(stats|live|admin|players\/[^/]+)\/?$/,
+      );
+      if (m)
+        location.replace(
+          m[1] +
+            "?route=" +
+            encodeURIComponent(m[2].replace(/\/$/, "")) +
+            location.hash,
+        );
+    </script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        background: #0d0b0b;
+        color: #f5efe8;
+        font-family: "Heebo", -apple-system, "Segoe UI", Arial, sans-serif;
+        text-align: center;
+        padding: 20px;
+      }
+      a {
+        color: #e6b647;
+        font-weight: 800;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <h1>העמוד לא נמצא</h1>
+      <p><a href="/">חזרה לאתר של המאוחדת ←</a></p>
+    </div>
+  </body>
+</html>
