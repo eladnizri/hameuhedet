@@ -2478,6 +2478,17 @@
       .shot-locked .lock-toggle {
         margin-top: 8px;
       }
+      .shot:not(.shot-locked) .lock-toggle {
+        position: absolute;
+        inset-inline-end: 8px;
+        top: 8px;
+        opacity: 0;
+        transition: 0.2s;
+      }
+      .shot:hover .lock-toggle,
+      .shot .lock-toggle:focus-visible {
+        opacity: 1;
+      }
     </style>
   </head>
   <body>
@@ -4416,6 +4427,7 @@
     <figure class="shot" data-i="${i}">
       <img src="${esc(g.src)}" alt="${esc(g.caption || "תמונה מהמגרש")}" loading="lazy">
       ${g.caption ? `<figcaption class="cap-txt">${esc(g.caption)}</figcaption>` : ""}
+      ${toggle}
     </figure>`;
           })
           .join("");
@@ -4516,6 +4528,15 @@
           }),
         );
         return docs.filter(Boolean);
+      }
+
+      /* שמירת מסמך טקסט (חדשות / פרק / נעילה) — פונקציה גלובלית כי
+   גם toggleLockByKey (מחוץ ל-if (CL.on)) צריכה לקרוא לה */
+      async function saveDoc(tag, doc) {
+        const file = new File([JSON.stringify(doc)], `${tag}-${Date.now()}.json`, {
+          type: "application/json",
+        });
+        return CL.upload(file, { tags: [tag], type: "raw" });
       }
 
       async function loadCloudContent() {
@@ -4882,15 +4903,6 @@
           $("#playerPick").value = `s:${btn.dataset.boss}`;
         });
 
-        /* ---- שמירת מסמך טקסט (חדשות / פרק) ---- */
-        async function saveDoc(tag, doc) {
-          const file = new File(
-            [JSON.stringify(doc)],
-            `${tag}-${Date.now()}.json`,
-            { type: "application/json" },
-          );
-          return CL.upload(file, { tags: [tag], type: "raw" });
-        }
 
         $("#editMediaSend").addEventListener("click", async () => {
           const publicId = $("#editMediaId").value;
