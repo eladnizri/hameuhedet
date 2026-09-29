@@ -67,7 +67,8 @@
           <path d="M55.6 60.4l-1.4 4.6 5.8 2.8 5.8-2.8-1.4-4.6z" />
         </g>
 
-        <!-- סרט הזהב עם השם -->
+        <!-- סרט הזהב עם השם. הטקסט כתוב הפוך בכוונה ומוצג משמאל לימין (bidi-override):
+             ספארי באייפון מתעלם מ-direction="rtl" ב-SVG, כך שזו הדרך היחידה שמוצגת נכון בכל דפדפן -->
         <path
           d="M8 88h104l-8 11 8 11H8l8-11z"
           fill="#e6b647"
@@ -78,13 +79,14 @@
           x="60"
           y="103.5"
           text-anchor="middle"
-          direction="rtl"
+          direction="ltr"
+          unicode-bidi="bidi-override"
+          xml:lang="he"
           font-family="Heebo, Arial, sans-serif"
           font-size="15"
           font-weight="900"
           fill="#141110"
-          letter-spacing="0.5"
         >
-          המאוחדת
+          תדחואמה
         </text>
 </svg>
