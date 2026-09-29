@@ -2399,6 +2399,76 @@
         color: var(--team-1);
         border-color: color-mix(in srgb, var(--team-1) 45%, transparent);
       }
+      /* ===== התראות לטלפון ===== */
+      #notifyBtn[hidden],
+      #notifyBtn2[hidden],
+      .notify-toggle[hidden] {
+        display: none !important;
+      }
+      #notifyBtn2 {
+        margin-inline-start: 8px;
+      }
+      .notify-body {
+        font-size: 14.5px;
+        line-height: 1.6;
+      }
+      .notify-lead {
+        margin: 0 0 16px;
+        color: var(--txt-dim);
+      }
+      .notify-steps {
+        margin: 0 0 16px;
+        padding-inline-start: 22px;
+        display: grid;
+        gap: 18px;
+      }
+      .notify-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .notify-row .chip {
+        text-decoration: none;
+      }
+      .notify-hint {
+        margin: 10px 0 0;
+        font-size: 13px;
+        color: var(--txt-dim);
+      }
+      .notify-hint a {
+        color: var(--team-1);
+      }
+      .notify-topic {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-top: 8px;
+      }
+      .notify-topic code {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: anywhere;
+        direction: ltr;
+        text-align: left;
+        padding: 8px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.05);
+        font-size: 13.5px;
+      }
+      .notify-toggle {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 16px;
+        padding: 10px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: rgba(255, 255, 255, 0.04);
+        font-size: 13.5px;
+        cursor: pointer;
+      }
       .locked-box {
         position: relative;
         text-align: center;
@@ -3761,6 +3831,14 @@
           <button class="lock-btn" id="unlockBtn" title="פתיחת תוכן נעול באתר">
             🔒 פתיחת נעילה
           </button>
+          <button
+            class="lock-btn"
+            id="notifyBtn"
+            title="קבלת התראה לטלפון על כל תוכן חדש"
+            hidden
+          >
+            🔔 התראות
+          </button>
         </nav>
       </div>
     </header>
@@ -3980,6 +4058,14 @@
               >
                 📸 עקבו אחרינו באינסטגרם
               </a>
+              <button
+                class="btn btn-ghost"
+                id="notifyBtn2"
+                data-notify-open
+                hidden
+              >
+                🔔 התראה לטלפון על כל עדכון
+              </button>
               <div class="ig-embeds" id="igEmbeds"></div>
             </div>
           </div>
@@ -4004,6 +4090,67 @@
         </div>
       </div>
     </footer>
+
+    <!-- ===== הרשמה להתראות ===== -->
+    <div class="sheet" id="notifySheet">
+      <div class="sheet-box">
+        <div class="sheet-top">
+          <h2>🔔 התראות לטלפון</h2>
+          <button class="sheet-x" id="notifyX" aria-label="סגירה">✕</button>
+        </div>
+        <div class="sheet-body notify-body">
+          <p class="notify-lead">
+            כל חדשה, פרק, סרטון או תמונה חדשה באתר מגיעים אליכם כהתראה
+            בטלפון, בלי הרשמה ובלי מייל. ההתראות עוברות דרך האפליקציה החינמית
+            <b>ntfy</b>.
+          </p>
+          <ol class="notify-steps">
+            <li>
+              <b>מתקינים את ntfy</b>
+              <div class="notify-row">
+                <a
+                  class="chip"
+                  href="https://play.google.com/store/apps/details?id=io.heckel.ntfy"
+                  target="_blank"
+                  rel="noopener"
+                  >🤖 אנדרואיד</a
+                >
+                <a
+                  class="chip"
+                  href="https://apps.apple.com/app/ntfy/id1625396347"
+                  target="_blank"
+                  rel="noopener"
+                  >🍎 אייפון</a
+                >
+              </div>
+            </li>
+            <li>
+              <b>נרשמים לערוץ של הקבוצה</b>
+              <div class="notify-row">
+                <a class="btn btn-main" id="notifySubscribe" href="#"
+                  >🔔 הרשמה בלחיצה</a
+                >
+              </div>
+              <p class="notify-hint">
+                אם הלחיצה לא פתחה את האפליקציה: לוחצים בה על ➕ ומדביקים את שם
+                הערוץ:
+              </p>
+              <div class="notify-topic">
+                <code id="notifyTopic"></code>
+                <button class="chip" id="notifyCopy">העתקה</button>
+              </div>
+            </li>
+          </ol>
+          <p class="notify-hint">
+            במחשב אפשר גם בלי אפליקציה:
+            <a id="notifyWeb" href="#" target="_blank" rel="noopener"
+              >פותחים את הערוץ בדפדפן</a
+            >
+            ומאשרים התראות.
+          </p>
+        </div>
+      </div>
+    </div>
 
     <!-- ===== פאנל הוספת תוכן ===== -->
     <button class="fab" id="fab" hidden>
@@ -4045,6 +4192,10 @@
         </div>
 
         <div class="sheet-body">
+          <label class="notify-toggle" id="notifyToggle" hidden>
+            <input type="checkbox" id="notifyFans" checked />
+            🔔 לשלוח התראה לטלפונים של האוהדים כשמפרסמים
+          </label>
           <!-- תמונות לגלריה -->
           <div class="form-pane on" id="form-photos">
             <div class="drop" id="drop">
@@ -4354,6 +4505,15 @@
      והיא נשמרת בדפדפן שלו כדי שלא יצטרך להקליד בכל פעם.
      זהו המתג היחיד שצריך לגעת בו אם מישהו יתחיל להשתולל.        */
         editCode: "",
+
+        /* ==== התראות לטלפון ====
+     כל פעם שמתפרסם מהאתר עדכון, פרק, סרטון או תמונות — נשלחת התראה
+     לכל מי שנרשם. ההתראות עוברות דרך ntfy.sh, שירות חינמי בלי הרשמה:
+     האוהדים מתקינים את האפליקציה ntfy (אנדרואיד / אייפון) ונרשמים
+     לנושא הזה בלחיצה על כפתור "🔔 התראות" באתר.
+     topic הוא שם הערוץ. כל מי שיודע אותו יכול גם לשלוח אליו,
+     אז כדאי שיהיה קשה לנחש. ריק = הכפתור לא מופיע ולא נשלחות התראות. */
+        notify: { server: "https://ntfy.sh", topic: "hameuhedet-fc-ee752be3" },
         colors: { main: "#e6b647", second: "#cf2033" }, // זהב ואדום, לפי הסמל
       };
 
@@ -4932,6 +5092,90 @@
         if (e.target.closest("[data-unlock-box]")) tryUnlockSite();
       });
       updateUnlockBtn();
+
+      /* ===================== התראות לטלפון =====================
+   שליחה ל-ntfy.sh: בקשת POST אחת עם JSON, בלי שרת משלנו.
+   גוף כמחרוזת (text/plain) כדי שהדפדפן לא ישלח בקשת preflight. */
+      const NOTIFY = {
+        get on() {
+          return !!TEAM.notify?.topic;
+        },
+        get server() {
+          return (TEAM.notify.server || "https://ntfy.sh").replace(/\/+$/, "");
+        },
+        get site() {
+          return /^https?:$/.test(location.protocol)
+            ? location.origin + "/"
+            : "https://hameuhedet.com/";
+        },
+        get webUrl() {
+          return `${this.server}/${TEAM.notify.topic}`;
+        },
+        /* בטלפון — קישור שפותח ישר את אפליקציית ntfy על הערוץ */
+        get appUrl() {
+          return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+            ? `ntfy://${this.server.replace(/^https?:\/\//, "")}/${TEAM.notify.topic}`
+            : this.webUrl;
+        },
+
+        /* לא זורקת שגיאה אף פעם — התראה שנכשלה לא אמורה לעצור פרסום */
+        async send({ title, message, tags = [], section = "", image = "" }) {
+          if (!this.on || $("#notifyFans")?.checked === false) return false;
+          try {
+            const r = await fetch(this.server, {
+              method: "POST",
+              body: JSON.stringify({
+                topic: TEAM.notify.topic,
+                title: `${TEAM.name} · ${title}`,
+                message,
+                tags,
+                click: this.site + (section ? "#" + section : ""),
+                ...(image ? { attach: image } : {}),
+              }),
+            });
+            return r.ok;
+          } catch {
+            return false;
+          }
+        },
+      };
+
+      /* תוכן נעול — לא חושפים את הכותרת בהתראה, בדיוק כמו באתר */
+      const notifyText = (doc, fallback) =>
+        doc.locked ? "תוכן נעול חדש 🔒 — הפרטים באתר" : fallback;
+
+      if (NOTIFY.on) {
+        const notifySheet = $("#notifySheet");
+        ["#notifyBtn", "#notifyBtn2", "#notifyToggle"].forEach(
+          (sel) => ($(sel).hidden = false),
+        );
+        $("#notifyTopic").textContent = TEAM.notify.topic;
+        $("#notifySubscribe").href = NOTIFY.appUrl;
+        $("#notifyWeb").href = NOTIFY.webUrl;
+
+        const closeNotify = () => notifySheet.classList.remove("on");
+        ["#notifyBtn", "#notifyBtn2"].forEach((sel) =>
+          $(sel).addEventListener("click", () => {
+            closeMobileMenu();
+            notifySheet.classList.add("on");
+          }),
+        );
+        $("#notifyX").addEventListener("click", closeNotify);
+        notifySheet.addEventListener("click", (e) => {
+          if (e.target === notifySheet) closeNotify();
+        });
+        document.addEventListener("keydown", (e) => {
+          if (e.key === "Escape") closeNotify();
+        });
+        $("#notifyCopy").addEventListener("click", async () => {
+          try {
+            await navigator.clipboard.writeText(TEAM.notify.topic);
+            showToast("שם הערוץ הועתק 📋");
+          } catch {
+            prompt("העתיקו את שם הערוץ:", TEAM.notify.topic);
+          }
+        });
+      }
 
       /* בודקת את סיסמת הנעילה בלי לשמור אותה בדפדפן — משמשת לפעולות
    נעילה/פתיחה נקודתיות (טופס הוספה, כפתור הנעילה על כרטיס קיים) */
@@ -5957,6 +6201,15 @@
               "ok",
             );
             showToast(`${good} תמונות נוספו לגלריה 📸`);
+            NOTIFY.send({
+              title: "תמונות חדשות בגלריה",
+              message:
+                caption ||
+                (good === 1 ? "תמונה חדשה עלתה לגלריה" : `${good} תמונות חדשות עלו לגלריה`),
+              tags: ["camera"],
+              section: "gallery",
+              image: shots[0]?.src,
+            });
             $("#capInput").value = "";
           }
         }
@@ -6195,6 +6448,13 @@
             renderNews();
             setNote($("#newsNote"), "העדכון פורסם והוא כבר בראש העמוד.", "ok");
             showToast("העדכון פורסם בהצלחה 📰");
+            NOTIFY.send({
+              title: doc.locked ? "עדכון חדש" : doc.title,
+              message: notifyText(doc, doc.text || "עדכון חדש באתר"),
+              tags: ["newspaper"],
+              section: "news",
+              image: doc.locked ? "" : doc.image,
+            });
             ["#nTitle", "#nText"].forEach((sel) => ($(sel).value = ""));
             $("#nImg").value = "";
             resetLockFields("n");
@@ -6233,6 +6493,15 @@
             renderPodcast();
             setNote($("#podNote"), "הפרק נוסף לאתר.", "ok");
             showToast("הפרק נוסף בהצלחה 🎙️");
+            NOTIFY.send({
+              title: 'פרק חדש של "הבה נרגילה"',
+              message: notifyText(
+                doc,
+                (doc.n ? `פרק ${doc.n}: ` : "") + doc.title,
+              ),
+              tags: ["studio_microphone"],
+              section: "podcast",
+            });
             ["#pNum", "#pTitle", "#pDesc", "#pEmbed"].forEach(
               (sel) => ($(sel).value = ""),
             );
@@ -6338,6 +6607,13 @@
               "ok",
             );
             showToast("הסרטון נוסף בהצלחה 🎬");
+            NOTIFY.send({
+              title: "סרטון חדש במדיה",
+              message: `${doc.title} · עם ${doc.participants}`,
+              tags: ["clapper"],
+              section: "media",
+              image: doc.poster,
+            });
             ["#mTitle", "#mParticipants"].forEach((sel) => ($(sel).value = ""));
             queueM.innerHTML = "";
             selectedMediaFile = null;
