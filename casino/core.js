@@ -120,6 +120,15 @@
     get cash() {
       return read(WKEY, { cash: 0 }).cash;
     },
+    /* נגמר כל הכסף (ואין כלום על שולחן) — מתחדש מיד ל-$100 */
+    refillIfBroke() {
+      if (this.cash + this.held >= 1) return false;
+      const w = read(WKEY, { cash: 0, day: today() });
+      w.cash = C.DAILY;
+      write(WKEY, w);
+      this.emit();
+      return true;
+    },
     get held() {
       return +holds()[SID]?.stack || 0;
     },

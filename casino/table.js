@@ -396,13 +396,83 @@
         const p = this.S?.players[from];
         if (!p || p.left) return;
         if (m.t === "act" && m.a && typeof m.a === "object") this.hostAct(from, m.a);
+        else if (m.t === "chat") this.hostChat(from, m.text);
         else if (m.t === "bye") this.dropPlayer(from);
         return;
       }
       if (m.t === "state" && m.S) {
         m.S._recv = Date.now();
         this.render(m.S);
-      } else if (m.t === "full") this.fail("השולחן מלא כרגע — נסו שולחן אחר או שחקו לבד מול המחשב.");
+      } else if (m.t === "chat" && m.m) this.addChat(m.m);
+      else if (m.t === "full") this.fail("השולחן מלא כרגע — נסו שולחן אחר או שחקו לבד מול המחשב.");
+    }
+
+    /* ===================== צ'אט חי ליד השולחן ===================== */
+    hostChat(pid, text) {
+      const p = this.S?.players[pid];
+      text = String(text ?? "").replace(/\s+/g, " ").trim().slice(0, 140);
+      if (!p || !text) return;
+      const now = Date.now();
+      if (now - (p.chatAt || 0) < 600) return;
+      p.chatAt = now;
+      const msg = { id: pid, name: p.name, text, look: p.look };
+      this.room?.broadcast({ t: "chat", m: msg });
+      this.addChat(msg);
+      if (this.solo && Math.random() < 0.5)
+        setTimeout(
+          () => !this.closed && this.addChat({ id: "dealer", name: "הדילר", text: C.pick(["😄", "בהצלחה! 🍀", "הבית תמיד מקשיב 😏", "איזה משחק!", "👏👏"]) }),
+          900,
+        );
+    }
+    chatSend(text) {
+      text = String(text).trim();
+      if (!text) return;
+      if (this.role === "host") this.hostChat(this.selfId, text);
+      else this.room?.send({ t: "chat", text });
+    }
+    addChat(m) {
+      if (this.closed || typeof m.text !== "string") return;
+      const msg = { id: String(m.id || ""), name: String(m.name || "").slice(0, 16), text: m.text.slice(0, 140) };
+      (this.chat ||= []).push(msg);
+      if (this.chat.length > 60) this.chat.shift();
+      const list = $(".chat-list", this.root);
+      const mine = msg.id === this.selfId;
+      list.insertAdjacentHTML(
+        "beforeend",
+        `<div class="chat-msg${mine ? " me" : ""}${msg.id === "dealer" ? " dealer" : ""}"><b>${esc(msg.name)}</b><span>${esc(msg.text)}</span></div>`,
+      );
+      while (list.children.length > 60) list.firstChild.remove();
+      list.scrollTop = list.scrollHeight;
+      /* בועה מעל הראש של מי שכתב */
+      const seat = this.V?.players[msg.id]?.seat;
+      const el = seat != null && this.scene.querySelector(`.seat[data-i="${seat}"]`);
+      if (el) {
+        el.querySelector(".seat-chat")?.remove();
+        const b = document.createElement("div");
+        b.className = "seat-chat";
+        b.textContent = msg.text.length > 60 ? msg.text.slice(0, 58) + "…" : msg.text;
+        el.appendChild(b);
+        setTimeout(() => b.remove(), 4500);
+      }
+      if (!mine) {
+        C.sfx.play("click");
+        if (!this.root.classList.contains("chat-open")) {
+          this.unread = (this.unread || 0) + 1;
+          const badge = $(".chat-badge", this.root);
+          badge.textContent = this.unread;
+          badge.hidden = false;
+        }
+      }
+    }
+    toggleChat(open = !this.root.classList.contains("chat-open")) {
+      this.root.classList.toggle("chat-open", open);
+      if (open) {
+        this.unread = 0;
+        $(".chat-badge", this.root).hidden = true;
+        const list = $(".chat-list", this.root);
+        list.scrollTop = list.scrollHeight;
+        if (matchMedia("(pointer: fine)").matches) $(".chat-in", this.root).focus();
+      }
     }
     hostAct(pid, a) {
       const p = this.S.players[pid];
@@ -421,8 +491,9 @@
       else this.room?.send({ t: "act", a });
     }
     async topup() {
+      C.wallet.refillIfBroke();
       const cash = Math.floor(C.wallet.cash);
-      if (cash < 1) return C.toast("הארנק ריק להיום. מחר מקבלים $100 חדשים 💸");
+      if (cash < 1) return C.toast("כל הכסף שלך כבר על השולחן 🙂");
       const v = await T.askAmount(this.root, {
         title: "להביא עוד כסף לשולחן",
         text: `בארנק: ${C.money(C.wallet.cash)}`,
@@ -471,6 +542,7 @@
     <div><small>בארנק</small><b class="tv-cash">$0</b></div>
     <button class="tv-btn tv-topup" title="להביא עוד כסף מהארנק">+</button>
   </div>
+  <button class="tv-btn tv-chat-btn" title="צ'אט עם מי שליד השולחן">💬<i class="chat-badge" hidden></i></button>
   <button class="tv-btn tv-snd" title="צלילים"></button>
   <button class="tv-btn tv-help" title="איך משחקים">?</button>
 </header>
@@ -481,6 +553,12 @@
 </div></div>
 <aside class="tv-side"><h4>ליד השולחן</h4><div class="tv-people"></div><h4>מה קורה</h4><div class="tv-log"></div></aside>
 <div class="tv-controls"></div>
+<section class="tv-chat" aria-label="צ'אט">
+  <div class="chat-head"><b>💬 צ'אט השולחן</b><button class="chat-x" aria-label="סגירה">✕</button></div>
+  <div class="chat-list"><div class="chat-msg dealer"><b>הדילר</b><span>${this.solo ? "אתם לבד בשולחן — אבל אני קורא 😉" : "כל מה שתכתבו כאן יופיע לכל מי שליד השולחן"}</span></div></div>
+  <div class="chat-quick">${["👏", "😂", "😱", "🔥", "😭", "🍀", "GG"].map((e) => `<button>${e}</button>`).join("")}</div>
+  <form class="chat-form"><input class="chat-in" maxlength="140" placeholder="כתבו משהו…" autocomplete="off"><button class="btn gold">שלח</button></form>
+</section>
 <div class="tv-overlay" hidden></div>`;
       document.body.appendChild(root);
       document.body.classList.add("at-table");
@@ -504,6 +582,16 @@
 
       $(".tv-leave", root).onclick = () => this.leave();
       $(".tv-topup", root).onclick = () => this.topup();
+      $(".tv-chat-btn", root).onclick = () => this.toggleChat();
+      $(".chat-x", root).onclick = () => this.toggleChat(false);
+      $(".chat-form", root).onsubmit = (e) => {
+        e.preventDefault();
+        const inp = $(".chat-in", root);
+        this.chatSend(inp.value);
+        inp.value = "";
+      };
+      $(".chat-quick", root).onclick = (e) => e.target.closest("button") && this.chatSend(e.target.textContent);
+      if (!this.solo && innerWidth > 860) this.toggleChat(true);
       const snd = $(".tv-snd", root);
       const sndTxt = () => (snd.textContent = C.sfx.on ? "🔊" : "🔇");
       sndTxt();
@@ -576,6 +664,14 @@
         /* הימור שעדיין אפשר לבטל נחשב "על השולחן" — חוזר לארנק אם יוצאים */
         this.stack = C.r2(me.stack + (this.G.pending?.(V, this.selfId) || 0));
         C.wallet.hold(this.def.key, this.stack);
+        /* נגמר הכסף לגמרי (ואין כלום על הקו) — מקבלים $100 חדשים ישר לשולחן */
+        if (this.stack < 1 && C.wallet.cash < 1 && !this.G.atStake?.(V, this.selfId) && !this.refilling) {
+          this.refilling = true;
+          this.stack = C.r2(this.stack + C.DAILY);
+          C.wallet.hold(this.def.key, this.stack);
+          this.send({ a: "topup", amt: C.DAILY });
+          C.toast(`💸 נגמר הכסף? קיבלת <b>${C.money(C.DAILY)}</b> חדשים!`, "win");
+        } else if (me.stack >= 1) this.refilling = false;
       }
       $(".tv-stack", this.root).textContent = C.money(me ? me.stack : this.stack);
       if (!this.mounted) {

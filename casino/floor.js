@@ -960,6 +960,7 @@
     const card = $("#tableCard");
     const G = C.GAMES[t.game];
     const info = tableInfo(t);
+    if (C.wallet.refillIfBroke()) C.toast("💸 נגמר הכסף? קיבלת <b>$100</b> חדשים!", "win");
     const cash = Math.floor(C.wallet.cash);
     W.cardFor = t;
     card.dataset.key = t.key;
@@ -992,6 +993,7 @@ ${
       const s = new C.Session({ key: t.key, game: t.game, name: t.name, dealer: t.dealerLook }, mode, {
         exit: () => {
           lastT = performance.now();
+          if (C.wallet.refillIfBroke()) C.toast("💸 נגמר הכסף? קיבלת <b>$100</b> חדשים!", "win");
           updateCash();
           Lobby.tick();
         },
@@ -1186,6 +1188,7 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     cv = $("#floor");
     g = cv.getContext("2d");
     C.wallet.init();
+    C.wallet.refillIfBroke();
     C.wallet.on(updateCash);
     updateCash();
     buildWorld();
@@ -1204,11 +1207,12 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
       const h = Math.floor(ms / 3600000);
       const mi = Math.floor((ms % 3600000) / 60000);
       C.toast(
-        `💰 בארנק: <b>${C.money(C.wallet.cash)}</b><br><small>כל יום מי שיש לו פחות מ-$100 מקבל השלמה ל-$100. היום הבא מתחיל בעוד ${h}:${String(mi).padStart(2, "0")} שעות.</small>`,
+        `💰 בארנק: <b>${C.money(C.wallet.cash)}</b><br><small>נגמר הכסף? מקבלים מיד $100 חדשים. ובכל יום מי שיש לו פחות מ-$100 מקבל השלמה ל-$100 (בעוד ${h}:${String(mi).padStart(2, "0")} שעות).</small>`,
       );
     };
     setInterval(() => {
       if (C.wallet.checkDay()) C.toast("☀️ יום חדש! הארנק מולא ל-<b>$100</b>", "win");
+      else if (!C.T.session && C.wallet.refillIfBroke()) C.toast("💸 נגמר הכסף? קיבלת <b>$100</b> חדשים!", "win");
     }, 30000);
     /* סוגרים את הדף באמצע משחק — מה שעל השולחן חוזר לארנק */
     addEventListener("pagehide", () => C.T.session?.close());
