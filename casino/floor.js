@@ -196,15 +196,18 @@
         }),
       );
     }
-    /* מלצריות */
-    for (let i = 0; i < 3; i++) {
-      const route = [{ x: 2060, y: 420 + i * 180 }, ...C.shuffle(spots.slice(), Math.random).slice(0, 4)];
+    /* מלצריות — מסתובבות ומציעות בירה למי שעובר לידן */
+    const WAITRESS_NAMES = ["שני", "נויה שוורץ", "אלה נצר"];
+    for (let i = 0; i < WAITRESS_NAMES.length; i++) {
+      const route = [{ x: 2060, y: 380 + i * 150 }, ...C.shuffle(spots.slice(), Math.random).slice(0, 4), ...NODES.slice(i * 3, i * 3 + 2)];
       let k = 0;
       W.people.push(
         new Person({
           x: 2060,
-          y: 420 + i * 180,
+          y: 380 + i * 150,
           look: C.WAITRESS(i),
+          name: WAITRESS_NAMES[i],
+          waitress: true,
           speed: 105,
           npc: true,
           idle(p) {
@@ -242,7 +245,7 @@
       const sum = s?.summary();
       return {
         name: pr.name,
-        look: pr.look,
+        look: myLook(),
         x: Math.round(W.me?.x || 0),
         y: Math.round(W.me?.y || 0),
         at: s ? s.def.key : null,
@@ -715,6 +718,119 @@
     }
   }
 
+  /* בועת דיבור מעל דמות באולם */
+  function drawBubble(p, text) {
+    const z = W.z;
+    const s = proj(p.x, p.y);
+    const h = 122 * z;
+    g.save();
+    g.font = `800 ${Math.round(Math.max(13, 15 * z))}px Heebo, sans-serif`;
+    g.direction = "rtl";
+    g.textAlign = "center";
+    const label = p.name ? `${p.name}: ${text}` : text;
+    const tw = g.measureText(label).width + 22;
+    const by = s.y - h - 26 * z;
+    g.shadowColor = "rgba(0,0,0,.5)";
+    g.shadowBlur = 12;
+    g.fillStyle = "#fff8e8";
+    rr(s.x - tw / 2, by - 28, tw, 32, 16);
+    g.fill();
+    g.shadowBlur = 0;
+    g.beginPath();
+    g.moveTo(s.x - 7, by + 3);
+    g.lineTo(s.x + 7, by + 3);
+    g.lineTo(s.x, by + 13);
+    g.fill();
+    g.fillStyle = "#2a1a00";
+    g.fillText(label, s.x, by - 6);
+    g.restore();
+  }
+
+  /* ===================== המלצריות מציעות בירה ===================== */
+  const BEER_LINES = ["בירה קרה, על חשבון הבית? 🍺", "צמא? הבאתי לך בירה 🍺", "רוצה בירה לפני המשחק? 🍻", "משהו לשתות? בירה קרה 🍺"];
+  function myLook() {
+    const look = C.profile.get()?.look || C.cleanLook();
+    return W.beerUntil > Date.now() ? { ...look, item: "beer" } : look;
+  }
+  function updateWaitresses() {
+    const now = performance.now();
+    const me = W.me;
+    if (W.beerUntil && Date.now() > W.beerUntil) {
+      W.beerUntil = 0;
+      me.look = myLook();
+    }
+    const o = W.offer;
+    if (o) {
+      if (now > o.until || Math.hypot(o.w.x - me.x, o.w.y - me.y) > 320) endOffer(false, true);
+      return;
+    }
+    if (!entered || C.T.session || now < (W.offerCool || 0) || !$("#profile").hidden) return;
+    for (const w of W.people) {
+      if (!w.waitress || now < (w.cool || 0)) continue;
+      if (Math.hypot(w.x - me.x, w.y - me.y) < 170) return startOffer(w);
+    }
+  }
+  function startOffer(w) {
+    const now = performance.now();
+    w.path = [];
+    w.wait = 9;
+    const text = C.pick(BEER_LINES);
+    w.say = { text, until: now + 8000 };
+    W.offer = { w, until: now + 8000 };
+    const box = $("#offer");
+    box.innerHTML = `<img src="${C.avatarURL(w.look)}" alt=""><div><b>${esc(w.name)}, המלצרית</b><p>${esc(text)}</p>
+<div class="offer-btns"><button class="btn gold yes">🍺 כן, תודה!</button><button class="btn ghost no">לא תודה</button></div></div>`;
+    box.hidden = false;
+    $(".yes", box).onclick = () => endOffer(true);
+    $(".no", box).onclick = () => endOffer(false);
+    C.sfx.play("turn");
+  }
+  function endOffer(accept, quiet) {
+    const o = W.offer;
+    if (!o) return;
+    const now = performance.now();
+    const w = o.w;
+    W.offer = null;
+    $("#offer").hidden = true;
+    w.cool = now + 45000;
+    W.offerCool = now + 20000;
+    w.wait = 1.2;
+    if (accept) {
+      W.beerUntil = Date.now() + 120000;
+      W.me.look = myLook();
+      w.say = { text: "לחיים! 🍻", until: now + 2500 };
+      C.sfx.play("chip");
+      C.sfx.play("chip", 0.12);
+      C.toast("🍻 לחיים! הבירה על חשבון הבית");
+      Lobby.tick();
+    } else w.say = quiet ? null : { text: "אולי אחר כך 😉", until: now + 2200 };
+  }
+  /* בכניסה לאולם — המלצרית הקרובה ניגשת מיד להציע בירה */
+  function greetOnEnter() {
+    const me = W.me;
+    const ws = W.people.filter((p) => p.waitress);
+    const w = ws.reduce((a, b) => (Math.hypot(b.x - me.x, b.y - me.y) < Math.hypot(a.x - me.x, a.y - me.y) ? b : a));
+    const speed = w.speed;
+    let tries = 0;
+    W.offerCool = Infinity;
+    const done = () => {
+      w.speed = speed;
+      if (W.offerCool === Infinity) W.offerCool = 0;
+    };
+    const chase = () => {
+      w.wait = 0;
+      w.goTo({ x: me.x + 70, y: me.y - 30 });
+      w.arrive = () => {
+        if (W.offer || C.T.session || !$("#profile").hidden) return done();
+        if (Math.hypot(w.x - me.x, w.y - me.y) > 200 && ++tries < 4) return chase();
+        done();
+        startOffer(w);
+      };
+    };
+    w.speed = 280;
+    chase();
+  }
+
   function tableInfo(t) {
     const ps = [...Lobby.people.values()].filter((p) => p.at === t.key);
     const multi = ps.filter((p) => !p.solo);
@@ -802,6 +918,7 @@
       me.walkT += dt;
     } else me.update(dt);
     for (const p of W.people) p.update(dt);
+    updateWaitresses();
     /* שחקנים אמיתיים — תנועה חלקה לעבר המיקום האחרון שקיבלנו */
     for (const p of Lobby.people.values()) {
       const dx = p.tx - p.x;
@@ -867,6 +984,8 @@
     }
     items.push({ y: W.me.y, f: () => drawPerson(W.me, "אני · " + W.me.name, "#ffd36b") });
     items.sort((a, b) => a.y - b.y).forEach((i) => i.f());
+    const nowMs = performance.now();
+    for (const p of W.people) if (p.say && nowMs < p.say.until) drawBubble(p, p.say.text);
     /* יעד הליכה */
     const dest = W.me.path[W.me.path.length - 1];
     if (dest) {
@@ -1164,7 +1283,7 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     if (!p) return;
     $("#meAv").src = C.avatarURL(p.look);
     if (W.me) {
-      W.me.look = p.look;
+      W.me.look = myLook();
       W.me.name = p.name;
     }
   }
@@ -1181,6 +1300,7 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     W.cam.y = 1300;
     document.body.classList.add("entered");
     Lobby.start();
+    setTimeout(greetOnEnter, 600);
     setTimeout(() => $("#hint").classList.add("gone"), 12000);
   }
 

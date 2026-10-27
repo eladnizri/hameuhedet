@@ -61,7 +61,7 @@
     mouth: { smile: "חיוך", grin: "שיניים", laugh: "צחוק", smirk: "עקום", neutral: "רציני", tongue: "😛 לשון", wow: "😮 מופתע", sad: "עצוב" },
     facial: { none: "בלי", beard: "זקן", goatee: "זקנקן", mustache: "שפם", handlebar: "שפם מסולסל", stubble: "זיפים" },
     glasses: { none: "בלי", reg: "👓 משקפיים", sun: "🕶️ שמש", round: "עגולים", star: "⭐ כוכבים", patch: "🏴‍☠️ רטייה", mono: "🧐 מונוקל", vr: "🎞️ תלת־ממד" },
-    item: { none: "בלי", drink: "🍹 קוקטייל", trophy: "🏆 גביע", ball: "⚽ כדור", flag: "🚩 דגל", mic: "🎤 מיקרופון", rose: "🌹 ורד", chips: "🪙 צ'יפים" },
+    item: { none: "בלי", beer: "🍺 בירה", drink: "🍹 קוקטייל", trophy: "🏆 גביע", ball: "⚽ כדור", flag: "🚩 דגל", mic: "🎤 מיקרופון", rose: "🌹 ורד", chips: "🪙 צ'יפים" },
   };
 
   const HEX = /^#[0-9a-f]{3,8}$/i;
@@ -346,9 +346,18 @@
     }
   }
 
+  /* כוס בירה עם קצף; x/y הפינה השמאלית העליונה */
+  const beerMug = (x, y, s) =>
+    `<g transform="translate(${x} ${y}) scale(${s})"><path d="M10 4Q15 4 15 8.5Q15 13 10 13" stroke="rgba(255,255,255,.75)" stroke-width="1.8" fill="none"/>
+<rect x="0" y="2" width="10.5" height="13" rx="1.6" fill="#f2a516"/><rect x="1.4" y="4" width="1.6" height="9" rx=".8" fill="#ffd36b" opacity=".8"/>
+<rect x="0" y="2" width="10.5" height="13" rx="1.6" fill="none" stroke="rgba(255,255,255,.7)" stroke-width=".7"/>
+<circle cx="2" cy="2" r="2.4" fill="#fff"/><circle cx="5.4" cy="1.2" r="2.8" fill="#fff"/><circle cx="8.8" cy="2" r="2.4" fill="#fff"/></g>`;
+
   /* ===================== חפצים ביד ===================== */
   function itemSVG(L, hx, hy) {
     switch (L.item) {
+      case "beer":
+        return beerMug(hx - 5, hy - 15, 1);
       case "drink":
         return `<path d="M${hx} ${hy}L${hx} ${hy - 9}" stroke="#ddd" stroke-width="1"/><path d="M${hx - 5.5} ${hy - 17}L${hx + 5.5} ${hy - 17}L${hx} ${hy - 9}Z" fill="rgba(255,255,255,.55)"/><path d="M${hx - 4} ${hy - 15.4}L${hx + 4} ${hy - 15.4}L${hx} ${hy - 10.6}Z" fill="#ff6f91"/><circle cx="${hx + 2.6}" cy="${hy - 17.4}" r="1.4" fill="#7cb342"/><path d="M${hx - 2} ${hy - 17}L${hx - 6} ${hy - 24}" stroke="#ffcf3a" stroke-width="1"/><path d="M${hx - 9} ${hy - 24}Q${hx - 6} ${hy - 28} ${hx - 3} ${hy - 24}Z" fill="#29b6f6"/>`;
       case "trophy":
@@ -495,9 +504,7 @@ ${hdefs}</defs>`;
       }
     }
     if (tray)
-      p += `<ellipse cx="53" cy="31" rx="12" ry="2.6" fill="#c8c8c8"/><ellipse cx="53" cy="30.3" rx="12" ry="2.2" fill="#e9e9e9"/>
-<path d="M45 30L46 20L50 20L51 30Z" fill="rgba(255,255,255,.55)"/><path d="M45.6 29L46.3 24L49.7 24L50.4 29Z" fill="#e8a33a"/>
-<path d="M55 30L55.5 22L59.5 22L60 30Z" fill="rgba(255,255,255,.55)"/><path d="M55.3 29L55.7 25L59.3 25L59.7 29Z" fill="#b3262e"/>`;
+      p += `<ellipse cx="53" cy="31" rx="12" ry="2.6" fill="#c8c8c8"/><ellipse cx="53" cy="30.3" rx="12" ry="2.2" fill="#e9e9e9"/>${beerMug(43.5, 15.5, 0.95)}${beerMug(53.5, 15.5, 0.95)}`;
     if (!staff) p += itemSVG(L, hx, hy);
     /* צוואר וראש */
     p += `<rect x="28.3" y="38" width="7.4" height="10" rx="3" fill="${shade(sk, -0.12)}"/>
@@ -646,5 +653,15 @@ ${hdefs}</defs>`;
   C.DEALER = C.cleanLook({ kind: "dealer", skin: "#ecbf98", hair: "#16100e", hs: 0, top: "#222428" });
   C.DEALER_F = C.cleanLook({ kind: "dealer", skin: "#d8a074", hair: "#3b2416", hs: 2, top: "#222428", lips: "#c2185b" });
   C.WAITRESS = (i = 0) =>
-    C.cleanLook({ kind: "waitress", skin: C.LOOK.skin[(i * 2 + 1) % 6], hair: C.LOOK.hair[(i * 3 + 2) % 7], hs: [2, 5, 9][i % 3], top: "#141414", lips: "#e53935" });
+    C.cleanLook({
+      kind: "waitress",
+      skin: C.LOOK.skin[[0, 1, 2, 1][i % 4]],
+      hair: ["#ecc96b", "#f3dc95", "#d9b24c", "#f6e3a8"][i % 4],
+      hs: [5, 1, 9, 1][i % 4],
+      lips: ["#e53935", "#c2185b", "#e53935", "#d1477a"][i % 4],
+      eye: ["#1f6fb3", "#2e8b57", "#1f6fb3", "#6b6b6b"][i % 4],
+      earrings: true,
+      blush: true,
+      top: "#141414",
+    });
 })();

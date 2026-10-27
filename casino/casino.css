@@ -422,6 +422,50 @@ input[type="range"] {
   color: var(--txt);
 }
 
+/* ===================== הצעת בירה מהמלצרית ===================== */
+.offer {
+  position: fixed;
+  z-index: 32;
+  left: 50%;
+  bottom: 70px;
+  transform: translateX(-50%);
+  width: min(420px, calc(100% - 20px));
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px 10px 12px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, rgba(40, 14, 20, 0.97), rgba(16, 6, 10, 0.97));
+  border: 1px solid rgba(230, 182, 71, 0.6);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  animation: toastIn 0.35s cubic-bezier(0.2, 1.4, 0.4, 1);
+}
+.offer img {
+  width: 64px;
+  height: 86px;
+  object-fit: cover;
+  object-position: 50% 0;
+  flex: none;
+}
+.offer b {
+  color: var(--gold-2);
+}
+.offer p {
+  margin: 2px 0 8px;
+  font-size: 15px;
+}
+.offer-btns {
+  display: flex;
+  gap: 8px;
+}
+.offer-btns .btn {
+  padding: 8px 14px;
+  font-size: 14px;
+}
+body.at-table .offer {
+  display: none;
+}
+
 /* ===================== רשימת שולחנות ===================== */
 .drawer,
 .modal {
