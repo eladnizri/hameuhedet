@@ -9,6 +9,10 @@
   /* שם החשבון ב-Cloudinary של האתר (TEAM.cloudinary.cloudName ב-index.html) */
   const CLOUD = "mrobhtey";
   const PHOTO_PREFIX = `https://res.cloudinary.com/${CLOUD}/image/upload/`;
+  /* זיהוי הפנים האוטומטי נופל על חלק מהתמונות (תופס את הסמל שעל החולצה), וכל תמונות
+     הסגל צולמו באותו פורמט — הראש תמיד באמצע למעלה. לכן חותכים קבוע. */
+  const FACE_CROP = "c_crop,g_north,w_0.46,h_0.36,y_0.02/c_fill,w_160,h_180";
+  const OLD_CROP = "c_thumb,g_face,w_160,h_180,z_0.75";
 
   C.LOOK = {
     skin: ["#f7d7bb", "#ecbf98", "#d8a074", "#b07448", "#82512f", "#583520", "#9ad17a", "#8fb8ff"],
@@ -90,7 +94,7 @@
       freckles: !!L.freckles,
       earrings: !!L.earrings,
       num: C.clamp(Math.floor(+(L.num ?? 10) || 0), 0, 99),
-      photo: okPhoto(L.photo) ? L.photo : "",
+      photo: okPhoto(L.photo) ? L.photo.replace(OLD_CROP, FACE_CROP) : "",
       kind: ["guest", "dealer", "waitress", "bartender"].includes(L.kind) ? L.kind : "guest",
     };
   };
@@ -628,7 +632,7 @@ ${hdefs}</defs>`;
               const id = m ? m[1] + m[2] : x.public_id;
               if (seen.has(id)) return;
               seen.add(id);
-              const url = `${PHOTO_PREFIX}c_thumb,g_face,w_160,h_180,z_0.75/f_jpg,q_auto/v${x.version}/${x.public_id}.${x.format}`;
+              const url = `${PHOTO_PREFIX}${FACE_CROP}/f_jpg,q_auto/v${x.version}/${x.public_id}.${x.format}`;
               if (okPhoto(url)) {
                 const fromSite = m ? names[m[1]][+m[2]] : "";
                 out.push({ name: String(fromSite || x.context?.custom?.person || "").slice(0, 30), url });
