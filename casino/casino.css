@@ -2249,23 +2249,89 @@ input[type="range"] {
   animation: pop 0.3s;
 }
 .tv-chat {
-  position: absolute;
-  z-index: 45;
-  left: 12px;
-  bottom: 110px;
-  width: 300px;
-  height: min(360px, 55vh);
-  display: none;
+  flex: 1;
+  min-height: 220px;
+  margin-top: 10px;
+  display: flex;
   flex-direction: column;
-  border-radius: 16px;
-  background: rgba(14, 6, 10, 0.94);
-  border: 1px solid rgba(230, 182, 71, 0.45);
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  border-radius: 14px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(230, 182, 71, 0.35);
   overflow: hidden;
 }
-.chat-open .tv-chat {
+.tv-side {
   display: flex;
-  animation: fadeUp 0.2s;
+  flex-direction: column;
+}
+.tv-people {
+  max-height: 128px;
+  overflow: auto;
+  flex: none;
+}
+.tv-people .person img {
+  width: 26px;
+  height: 30px;
+  margin: 0;
+  object-fit: cover;
+  object-position: 50% 12%;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.06);
+}
+.tv-log {
+  max-height: 92px;
+  overflow: auto;
+  flex: none;
+  font-size: 12px;
+}
+.chat-x {
+  display: none;
+}
+.tv-react {
+  position: absolute;
+  z-index: 60;
+  top: 62px;
+  inset-inline-end: 12px;
+  width: min(330px, calc(100% - 24px));
+  padding: 10px;
+  border-radius: 16px;
+  background: rgba(14, 6, 10, 0.97);
+  border: 1px solid rgba(230, 182, 71, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  animation: fadeUp 0.15s;
+}
+.react-emoji {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 4px;
+}
+.react-emoji button {
+  font-size: 24px;
+  padding: 6px 0;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+}
+.react-emoji button:hover,
+.react-text button:hover {
+  background: rgba(230, 182, 71, 0.2);
+}
+.react-text {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 8px;
+}
+.react-text button,
+.chat-quick.phrases button {
+  padding: 5px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+}
+.chat-quick.phrases {
+  max-height: 64px;
+  overflow: auto;
 }
 .chat-head {
   display: flex;
@@ -2308,10 +2374,10 @@ input[type="range"] {
   border-radius: 12px 12px 4px 12px;
   background: rgba(230, 182, 71, 0.2);
 }
-.chat-msg.dealer {
+.chat-msg.sys {
   background: rgba(125, 255, 168, 0.1);
 }
-.chat-msg.dealer b {
+.chat-msg.sys b {
   color: var(--green);
 }
 .chat-quick {
@@ -2363,6 +2429,36 @@ input[type="range"] {
   pointer-events: none;
   animation: chatBubble 4.5s forwards;
 }
+.seat-chat.emoji {
+  padding: 2px 8px;
+  font-size: 38px;
+  background: transparent;
+  box-shadow: none;
+  animation: emojiFloat 2.6s ease-out forwards;
+}
+.seat.chatting {
+  z-index: 20;
+}
+@keyframes emojiFloat {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.4);
+  }
+  15% {
+    opacity: 1;
+    transform: translateY(0) scale(1.25);
+  }
+  25% {
+    transform: scale(1);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-50px);
+  }
+}
 @keyframes chatBubble {
   0% {
     opacity: 0;
@@ -2380,13 +2476,82 @@ input[type="range"] {
   }
 }
 @media (max-width: 860px) {
-  .tv-chat {
-    left: 8px;
-    right: 8px;
-    width: auto;
-    bottom: 8px;
-    height: 55%;
+  .chat-open .tv-side {
+    display: flex;
+    position: fixed;
+    z-index: 70;
+    inset: 104px 8px 96px;
+    margin: 0;
+    background: rgba(14, 6, 10, 0.97);
+    border-color: rgba(230, 182, 71, 0.5);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.7);
   }
+  .chat-open .tv-side > h4,
+  .chat-open .tv-people,
+  .chat-open .tv-log {
+    display: none;
+  }
+  .chat-open .tv-chat {
+    margin: 0;
+    min-height: 0;
+  }
+  .chat-x {
+    display: block;
+  }
+}
+
+/* ===== פרפקט פייר ===== */
+.pp-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px 4px 12px;
+  border-radius: 999px;
+  background: rgba(124, 77, 255, 0.15);
+  border: 1px solid rgba(178, 140, 255, 0.5);
+  font-size: 14px;
+}
+.pp-row b {
+  color: #d7c4ff;
+}
+.pp-row small {
+  color: var(--dim);
+}
+.pp-row button {
+  min-width: 34px;
+  height: 30px;
+  border-radius: 999px;
+  border: 1px solid rgba(178, 140, 255, 0.6);
+  background: rgba(124, 77, 255, 0.25);
+  font-weight: 800;
+}
+.pp-chip {
+  position: absolute;
+  bottom: -4px;
+  inset-inline-start: calc(100% + 2px);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #5b3bd6;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  direction: ltr;
+}
+.pp-chip.won {
+  background: linear-gradient(180deg, #e9dcff, #9c7bff);
+  color: #2a1060;
+  animation: pop 0.4s;
+}
+.pp-chip.lost {
+  opacity: 0.5;
+}
+.bj-spot {
+  overflow: visible;
+}
+.fx-pp {
+  background: linear-gradient(180deg, #f1e9ff, #9c7bff 60%, #5b3bd6);
+  color: #1e0b4d;
 }
 
 /* ===== חגיגות ===== */

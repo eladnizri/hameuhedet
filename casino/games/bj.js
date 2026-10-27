@@ -21,6 +21,15 @@
   };
   const say = (S, pid, t) => (S.says[pid] = { t, k: (S.sk = (S.sk || 0) + 1) });
   const cv = (c) => (c.r === 14 ? 11 : Math.min(c.r, 10));
+  /* פרפקט פייר: זוג בשני הקלפים הראשונים של השחקן */
+  const PP = {
+    perfect: { x: 25, n: "פרפקט פייר" },
+    colored: { x: 12, n: "זוג באותו צבע" },
+    mixed: { x: 6, n: "זוג מעורב" },
+  };
+  const red = (c) => c.s === "h" || c.s === "d";
+  const ppKind = (a, b) =>
+    !a || !b || a.r !== b.r ? null : a.s === b.s ? "perfect" : red(a) === red(b) ? "colored" : "mixed";
 
   /* כיתוב שקופץ על השולחן; x/y באחוזים מהסצנה */
   function fx(sc, cls, title, sub, x, y, delay = 0) {
@@ -59,6 +68,15 @@
       H.log("הדילר ערבב 6 חפיסות חדשות");
     }
     S.order = S.seats.filter((id) => id && S.bets[id] && !S.players[id].left);
+    /* פרפקט פייר בלי הימור ראשי — חוזר לשחקן */
+    for (const id of Object.keys(S.pp)) {
+      if (S.order.includes(id)) S.lastPP[id] = S.pp[id];
+      else {
+        if (S.players[id]) S.players[id].stack = C.r2(S.players[id].stack + S.pp[id]);
+        delete S.pp[id];
+      }
+    }
+    S.ppRes = {};
     S.hands = {};
     S.order.forEach((id) => {
       S.hands[id] = [{ cards: [], bet: S.bets[id] }];
@@ -83,12 +101,24 @@
   }
 
   function afterDeal(S, H) {
+    for (const [id, amt] of Object.entries(S.pp)) {
+      const p = S.players[id];
+      const [a, b] = S.hands[id]?.[0].cards || [];
+      const k = ppKind(a, b);
+      const pay = k ? amt * (PP[k].x + 1) : 0;
+      if (p && !p.left) p.stack = C.r2(p.stack + pay);
+      S.ppRes[id] = { k, net: C.r2(pay - amt), x: k ? PP[k].x : 0 };
+      if (k) H.log(`${p?.name}: ${PP[k].n} ×${PP[k].x} → +${C.money(pay - amt)} 💎`);
+    }
+    S.pp = {};
+    if (Object.values(S.ppRes).some((r) => r.k)) H.say("💎 יש פרפקט פייר על השולחן!");
     for (const id of S.order) {
       const h = S.hands[id][0];
       if (val(h.cards).t === 21) {
         h.done = h.bj = true;
         say(S, id, "בלאק ג'ק! 21 🔥");
-      } else say(S, id, `יש לך ${val(h.cards).t}`);
+      } else if (S.ppRes[id]?.k) say(S, id, `💎 ${PP[S.ppRes[id].k].n}! ×${S.ppRes[id].x}`);
+      else say(S, id, `יש לך ${val(h.cards).t}`);
     }
     if (val(S.dealer.cards).t === 21) {
       S.dealer.hole = false;
@@ -182,6 +212,11 @@
         if (p && !p.left) p.stack = C.r2(p.stack + pay);
       }
       if (p && !p.left) {
+        const pr = S.ppRes?.[id];
+        if (pr) {
+          net += pr.net;
+          parts.push(pr.k ? `💎 ${PP[pr.k].n} ×${pr.x}` : "פרפקט פייר לא נכנס");
+        }
         net = C.r2(net);
         S.results[id] = net;
         S.why[id] = parts.join(" · ");
@@ -195,6 +230,7 @@
     H.after(2600, () => {
       S.phase = "bet";
       S.bets = {};
+      S.ppRes = {};
       S.hands = {};
       S.order = [];
       S.dealer = { cards: [], hole: false };
@@ -239,12 +275,16 @@
 <li>המטרה: להגיע קרוב ל-21 יותר מהדילר, בלי לעבור. תמונה = 10, אס = 1 או 11.</li>
 <li><b>קלף</b> — עוד קלף. <b>עוצר</b> — מסיימים. <b>הכפלה</b> — מכפילים את ההימור ומקבלים קלף אחד בלבד. <b>פיצול</b> — זוג זהה נחלק לשתי ידיים.</li>
 <li>אס + 10 בשני הקלפים הראשונים = בלאק ג'ק, משלם 3 ל-2.</li>
-<li>הדילר (המחשב) מושך קלפים עד 17 ועוצר.</li></ul>`,
+<li>הדילר (המחשב) מושך קלפים עד 17 ועוצר.</li>
+<li>💎 <b>פרפקט פייר</b> — הימור צדדי ששני הקלפים הראשונים שלכם יהיו זוג: זוג מעורב (אדום+שחור) ×6, זוג באותו צבע ×12, זוג מושלם (אותו סוג בדיוק) ×25. משתלם מיד אחרי החלוקה, לא קשור לתוצאה מול הדילר.</li></ul>`,
     init(S, H) {
       S.phase = "bet";
       S.shoe = C.deck(6);
       S.bets = {};
       S.last = {};
+      S.pp = {};
+      S.lastPP = {};
+      S.ppRes = {};
       S.hands = {};
       S.order = [];
       S.dealer = { cards: [], hole: false };
@@ -254,10 +294,11 @@
       H.say("ברוכים הבאים! הימורים בבקשה 🎩");
     },
     status: (V) => (V.phase === "bet" ? "מקבלים הימורים" : "סיבוב בעיצומו"),
-    pending: (V, me) => (V.phase === "bet" ? V.bets[me] || 0 : 0),
+    pending: (V, me) => (V.phase === "bet" ? (V.bets[me] || 0) + (V.pp?.[me] || 0) : 0),
     atStake: (V, me) => !!V.hands?.[me] && V.phase !== "bet" && V.phase !== "done",
     onLeave(S, pid, H) {
       delete S.bets[pid];
+      delete S.pp[pid];
       if (S.phase === "bet") return true;
       S.hands[pid]?.forEach((h) => (h.done = true));
       if (S.cur?.pid === pid) next(S, H);
@@ -282,6 +323,14 @@
           p.stack = C.r2(p.stack + old - amt);
           if (amt > 0) S.bets[pid] = amt;
           else delete S.bets[pid];
+        } else if (a.a === "pp") {
+          const want = Math.floor(+a.amt);
+          if (!(want >= 0)) return;
+          const old = S.pp[pid] || 0;
+          const amt = Math.min(want, Math.floor(p.stack + old));
+          p.stack = C.r2(p.stack + old - amt);
+          if (amt > 0) S.pp[pid] = amt;
+          else delete S.pp[pid];
         } else if (a.a === "deal" && S.bets[pid]) deal(S, H);
         return;
       }
@@ -326,11 +375,12 @@
       const sc = ctx.scene;
       sc.insertAdjacentHTML(
         "beforeend",
-        `<div class="felt bj-felt"><div class="felt-print"><b>BLACKJACK PAYS 3 TO 2</b><span>הדילר מושך עד 17 · המאוחדת קזינו</span></div></div>
+        `<div class="felt bj-felt"><div class="felt-print"><b>BLACKJACK PAYS 3 TO 2</b><span>הדילר מושך עד 17 · 💎 PERFECT PAIRS 25:1</span></div></div>
 <div class="dealer-hand"><div class="cards bj-dcards"></div><div class="total"></div></div>`,
       );
       ctx.controls.innerHTML = `
 <div class="ctl c-bet"><div class="ctl-info">ההימור שלך: <b class="mybet">$0</b></div><div class="chipbar"></div>
+  <div class="pp-row"><span>💎 פרפקט פייר <small>(עד ×25)</small>: <b class="mypp">$0</b></span><button data-pp="1">+1</button><button data-pp="5">+5</button><button data-pp="10">+10</button><button data-pp="0" class="ppclr">✕</button></div>
   <div class="ctl-btns"><button class="btn ghost clr">נקה</button><button class="btn ghost rebet">↺ <span>כמו קודם</span></button><button class="btn gold go">🃏 חלוקה!</button></div></div>
 <div class="ctl c-play"><button class="btn act hit">➕ קלף</button><button class="btn act stand">✋ עוצר</button><button class="btn act dbl">×2 הכפלה</button><button class="btn act split">✂️ פיצול</button></div>
 <div class="ctl c-wait"><span class="wait-txt"></span></div>`;
@@ -342,7 +392,20 @@
       };
       T.chipBar($(".chipbar", c), (v) => ctx.send({ a: "bet", amt: Math.min(room(), bet() + v) }));
       $(".clr", c).onclick = () => ctx.send({ a: "bet", amt: 0 });
-      $(".rebet", c).onclick = () => ctx.send({ a: "bet", amt: Math.min(room(), ctx.sess.V?.last?.[ctx.me] || 0) });
+      $(".rebet", c).onclick = () => {
+        const V = ctx.sess.V;
+        ctx.send({ a: "bet", amt: Math.min(room(), V?.last?.[ctx.me] || 0) });
+        if (V?.lastPP?.[ctx.me]) ctx.send({ a: "pp", amt: V.lastPP[ctx.me] });
+      };
+      $(".pp-row", c).onclick = (e) => {
+        const b = e.target.closest("[data-pp]");
+        if (!b) return;
+        C.sfx.play("chip");
+        const V = ctx.sess.V;
+        const cur = V?.pp?.[ctx.me] || 0;
+        const v = +b.dataset.pp;
+        ctx.send({ a: "pp", amt: v ? Math.min(cur + v, Math.floor((V?.players[ctx.me]?.stack || 0) + cur)) : 0 });
+      };
       $(".go", c).onclick = () => ctx.send({ a: "deal" });
       $(".hit", c).onclick = () => ctx.send({ a: "hit" });
       $(".stand", c).onclick = () => ctx.send({ a: "stand" });
@@ -377,10 +440,15 @@
         }
         const hands = (id && V.hands?.[id]) || [];
         const b = V.phase === "bet" ? V.bets[id] || 0 : hands.reduce((s, h) => s + h.bet, 0);
-        const bk = String(b);
+        const ppAmt = (id && V.phase === "bet" && V.pp?.[id]) || 0;
+        const ppr = id && V.phase !== "bet" ? V.ppRes?.[id] : null;
+        const bk = b + ":" + ppAmt + ":" + (ppr ? ppr.k + ppr.net : "");
         if (spot.dataset.b !== bk) {
           spot.dataset.b = bk;
-          spot.innerHTML = T.chips(b);
+          spot.innerHTML =
+            T.chips(b) +
+            (ppAmt ? `<span class="pp-chip">💎 ${C.money(ppAmt)}</span>` : "") +
+            (ppr ? `<span class="pp-chip ${ppr.k ? "won" : "lost"}">💎 ${ppr.k ? "×" + ppr.x : "✕"}</span>` : "");
         }
         while (hb.children.length > hands.length) hb.lastChild.remove();
         while (hb.children.length < hands.length)
@@ -399,6 +467,18 @@
       const dv = val(V.dealer.cards).t;
       $(".dealer-hand .total", sc).textContent = V.dealer.cards.length ? dv : "";
       $(".dealer-hand", sc).classList.toggle("busted", dv > 21);
+
+      /* פרפקט פייר שלי נכנס */
+      const myPP = V.ppRes?.[me];
+      if (myPP?.k && ctx.ppRound !== V.round && mySeat != null) {
+        ctx.ppRound = V.round;
+        const el = sc.querySelector(`.seat[data-i="${mySeat}"]`);
+        const x = parseFloat(el.style.left);
+        const y = parseFloat(el.style.top);
+        C.sfx.play(myPP.k === "perfect" ? "big" : "win");
+        confetti(sc, x, y - 18);
+        fx(sc, "fx-win fx-pp", `💎 ${PP[myPP.k].n}! ×${myPP.x}`, `+${C.money(myPP.net)}`, x, y - 32);
+      }
 
       /* סוף סיבוב: הדילר נשרף / ניצחת */
       if (V.phase === "done" && ctx.fxRound !== V.round) {
@@ -442,7 +522,10 @@
       if (mode !== "play") delete $(".c-play", c).dataset.hint;
       if (mode === "bet") {
         const mb = V.bets[me] || 0;
+        const mpp = V.pp?.[me] || 0;
         $(".mybet", c).textContent = C.money(mb);
+        $(".mypp", c).textContent = C.money(mpp);
+        $(".ppclr", c).hidden = !mpp;
         $(".go", c).disabled = !mb;
         const last = V.last?.[me] || 0;
         $(".rebet", c).hidden = !last || mb === last;
@@ -450,7 +533,9 @@
         const others = Object.keys(V.bets).filter((id) => id !== me).length;
         $(".ctl-info", c).innerHTML = `ההימור שלך: <b class="mybet">${C.money(mb)}</b>${
           others ? ` <small>· עוד ${others} שחקנים הימרו</small>` : ""
-        }${P && P.stack < 1 && !mb ? ` <small class="warn">אין כסף על השולחן — לחצו + למעלה</small>` : ""}`;
+        }${mpp && !mb ? ` <small class="warn">פרפקט פייר משחק רק יחד עם הימור ראשי</small>` : ""}${
+          P && P.stack < 1 && !mb ? ` <small class="warn">אין כסף על השולחן — לחצו + למעלה</small>` : ""
+        }`;
       }
       if (mode === "play") {
         const h = V.hands[me][V.cur.h];

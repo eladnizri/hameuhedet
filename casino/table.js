@@ -7,6 +7,8 @@
   const { $, $$, esc } = C;
   C.GAMES = {};
   const T = (C.T = { scale: 1 });
+  const REACT_EMOJI = ["👏", "😂", "😱", "🔥", "😭", "🍀", "😎", "🤑", "💪", "🙏", "😡", "🎉"];
+  const REACT_TEXT = ["בהצלחה! 🍀", "יפה מאוד 👏", "וואו 😱", "חחחח 😂", "לא נכון... 😭", "עוד סיבוב?", "הכל או כלום! 🔥", "יאללה, מחכים 😴", "תודה 🙏", "GG 🤝"];
 
   /* ===================== צ'יפים ===================== */
   const DEN = [
@@ -413,7 +415,7 @@
       text = String(text ?? "").replace(/\s+/g, " ").trim().slice(0, 140);
       if (!p || !text) return;
       const now = Date.now();
-      if (now - (p.chatAt || 0) < 600) return;
+      if (now - (p.chatAt || 0) < 350) return;
       p.chatAt = now;
       const msg = { id: pid, name: p.name, text, look: p.look };
       this.room?.broadcast({ t: "chat", m: msg });
@@ -439,24 +441,31 @@
       const mine = msg.id === this.selfId;
       list.insertAdjacentHTML(
         "beforeend",
-        `<div class="chat-msg${mine ? " me" : ""}${msg.id === "dealer" ? " dealer" : ""}"><b>${esc(msg.name)}</b><span>${esc(msg.text)}</span></div>`,
+        `<div class="chat-msg${mine ? " me" : ""}${msg.id === "dealer" ? " sys" : ""}"><b>${esc(msg.name)}</b><span>${esc(msg.text)}</span></div>`,
       );
       while (list.children.length > 60) list.firstChild.remove();
       list.scrollTop = list.scrollHeight;
-      /* בועה מעל הראש של מי שכתב */
+      /* בועה מעל הראש של מי שכתב — אימוג'י לבד נראה גדול ומרחף */
       const seat = this.V?.players[msg.id]?.seat;
       const el = seat != null && this.scene.querySelector(`.seat[data-i="${seat}"]`);
       if (el) {
         el.querySelector(".seat-chat")?.remove();
         const b = document.createElement("div");
-        b.className = "seat-chat";
+        const emoji = /^[\p{Extended_Pictographic}\uFE0F\u200D\s]+$/u.test(msg.text);
+        b.className = "seat-chat" + (emoji ? " emoji" : "");
         b.textContent = msg.text.length > 60 ? msg.text.slice(0, 58) + "…" : msg.text;
         el.appendChild(b);
-        setTimeout(() => b.remove(), 4500);
+        el.classList.add("chatting");
+        clearTimeout(el._chatT);
+        el._chatT = setTimeout(() => {
+          b.remove();
+          el.classList.remove("chatting");
+        }, 4500);
       }
+      const hidden = !$(".tv-side", this.root).offsetParent;
       if (!mine) {
         C.sfx.play("click");
-        if (!this.root.classList.contains("chat-open")) {
+        if (hidden) {
           this.unread = (this.unread || 0) + 1;
           const badge = $(".chat-badge", this.root);
           badge.textContent = this.unread;
@@ -465,7 +474,9 @@
       }
     }
     toggleChat(open = !this.root.classList.contains("chat-open")) {
+      /* במחשב הצ'אט תמיד פתוח בצד; בטלפון הוא נפתח כמגירה */
       this.root.classList.toggle("chat-open", open);
+      $(".tv-react", this.root).hidden = true;
       if (open) {
         this.unread = 0;
         $(".chat-badge", this.root).hidden = true;
@@ -542,6 +553,7 @@
     <div><small>בארנק</small><b class="tv-cash">$0</b></div>
     <button class="tv-btn tv-topup" title="להביא עוד כסף מהארנק">+</button>
   </div>
+  <button class="tv-btn tv-react-btn" title="תגובה מהירה">😀</button>
   <button class="tv-btn tv-chat-btn" title="צ'אט עם מי שליד השולחן">💬<i class="chat-badge" hidden></i></button>
   <button class="tv-btn tv-snd" title="צלילים"></button>
   <button class="tv-btn tv-help" title="איך משחקים">?</button>
@@ -551,14 +563,16 @@
   <div class="dealer"><img alt="הדילר"></div>
   <div class="shoe" title="נעל קלפים"><i></i><i></i><i></i></div>
 </div></div>
-<aside class="tv-side"><h4>ליד השולחן</h4><div class="tv-people"></div><h4>מה קורה</h4><div class="tv-log"></div></aside>
-<div class="tv-controls"></div>
+<aside class="tv-side"><h4>ליד השולחן</h4><div class="tv-people"></div><h4>מה קורה</h4><div class="tv-log"></div>
 <section class="tv-chat" aria-label="צ'אט">
   <div class="chat-head"><b>💬 צ'אט השולחן</b><button class="chat-x" aria-label="סגירה">✕</button></div>
-  <div class="chat-list"><div class="chat-msg dealer"><b>הדילר</b><span>${this.solo ? "אתם לבד בשולחן — אבל אני קורא 😉" : "כל מה שתכתבו כאן יופיע לכל מי שליד השולחן"}</span></div></div>
-  <div class="chat-quick">${["👏", "😂", "😱", "🔥", "😭", "🍀", "GG"].map((e) => `<button>${e}</button>`).join("")}</div>
-  <form class="chat-form"><input class="chat-in" maxlength="140" placeholder="כתבו משהו…" autocomplete="off"><button class="btn gold">שלח</button></form>
-</section>
+  <div class="chat-list"><div class="chat-msg sys"><b>הדילר</b><span>${this.solo ? "אתם לבד בשולחן — אבל אני קורא 😉" : "כל מה שתכתבו כאן יופיע לכולם, גם כבועה מעל הדמות שלכם"}</span></div></div>
+  <div class="chat-quick">${REACT_EMOJI.map((e) => `<button>${e}</button>`).join("")}</div>
+  <div class="chat-quick phrases">${REACT_TEXT.map((e) => `<button>${e}</button>`).join("")}</div>
+  <form class="chat-form"><input class="chat-in" maxlength="140" placeholder="כתבו משהו…" autocomplete="off" enterkeyhint="send"><button class="btn gold">שלח</button></form>
+</section></aside>
+<div class="tv-react" hidden><div class="react-emoji">${REACT_EMOJI.map((e) => `<button>${e}</button>`).join("")}</div><div class="react-text">${REACT_TEXT.map((e) => `<button>${e}</button>`).join("")}</div></div>
+<div class="tv-controls"></div>
 <div class="tv-overlay" hidden></div>`;
       document.body.appendChild(root);
       document.body.classList.add("at-table");
@@ -582,7 +596,13 @@
 
       $(".tv-leave", root).onclick = () => this.leave();
       $(".tv-topup", root).onclick = () => this.topup();
-      $(".tv-chat-btn", root).onclick = () => this.toggleChat();
+      $(".tv-chat-btn", root).onclick = () => {
+        if (innerWidth > 860) {
+          $(".chat-in", root).focus();
+          const list = $(".chat-list", root);
+          list.scrollTop = list.scrollHeight;
+        } else this.toggleChat();
+      };
       $(".chat-x", root).onclick = () => this.toggleChat(false);
       $(".chat-form", root).onsubmit = (e) => {
         e.preventDefault();
@@ -590,8 +610,22 @@
         this.chatSend(inp.value);
         inp.value = "";
       };
-      $(".chat-quick", root).onclick = (e) => e.target.closest("button") && this.chatSend(e.target.textContent);
-      if (!this.solo && innerWidth > 860) this.toggleChat(true);
+      const quick = (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        this.chatSend(b.textContent);
+        $(".tv-react", root).hidden = true;
+      };
+      root.querySelectorAll(".chat-quick").forEach((q) => (q.onclick = quick));
+      $(".tv-react", root).onclick = quick;
+      $(".tv-react-btn", root).onclick = (e) => {
+        e.stopPropagation();
+        const r = $(".tv-react", root);
+        r.hidden = !r.hidden;
+      };
+      root.addEventListener("click", (e) => {
+        if (!e.target.closest(".tv-react, .tv-react-btn")) $(".tv-react", root).hidden = true;
+      });
       const snd = $(".tv-snd", root);
       const sndTxt = () => (snd.textContent = C.sfx.on ? "🔊" : "🔇");
       sndTxt();
