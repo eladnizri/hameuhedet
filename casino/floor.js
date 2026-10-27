@@ -6,8 +6,8 @@
   const C = window.Casino;
   const { $, esc } = C;
   const K = 0.62; /* דחיסת הרצפה — נותן מבט "מלמעלה באלכסון" */
-  const WORLD = { w: 2400, h: 1720 };
-  const WALK = { x0: 255, x1: 2085, y0: 165, y1: 1640 };
+  const WORLD = { w: 2400, h: 2300 };
+  const WALK = { x0: 255, x1: 2085, y0: 165, y1: 2220 };
 
   const TABLES = (C.TABLES = [
     { key: "poker-1", game: "poker", name: "פוקר · שולחן 1", x: 620, y: 520, color: "#e6b647" },
@@ -16,13 +16,18 @@
     { key: "poker-2", game: "poker", name: "פוקר · שולחן 2", x: 620, y: 1080, color: "#e6b647", fem: true },
     { key: "bj-2", game: "bj", name: "בלאק ג'ק · שולחן 2", x: 1170, y: 1080, color: "#ff4d6d", fem: true },
     { key: "hilo-1", game: "hilo", name: "גבוה־נמוך", x: 1720, y: 1080, color: "#c86bff" },
+    { key: "roulette-1", game: "roulette", name: "רולטה · שולחן 1", x: 620, y: 1640, color: "#ffd23f" },
+    { key: "roulette-2", game: "roulette", name: "רולטה · שולחן 2", x: 1720, y: 1640, color: "#ffd23f", fem: true },
   ]);
   for (const t of TABLES) {
-    Object.assign(t, { poker: { rx: 200, ry: 112 }, bj: { rx: 185, ry: 110 }, race: { rx: 215, ry: 118 }, hilo: { rx: 150, ry: 100 } }[t.game]);
+    Object.assign(
+      t,
+      { poker: { rx: 200, ry: 112 }, bj: { rx: 185, ry: 110 }, race: { rx: 215, ry: 118 }, hilo: { rx: 150, ry: 100 }, roulette: { rx: 215, ry: 118 } }[t.game],
+    );
     t.ax = t.x;
     t.ay = t.y + t.ry + 75;
     t.dealerLook = t.fem ? C.DEALER_F : C.DEALER;
-    const angs = t.game === "race" ? [20, 55, 90, 125, 160] : t.game === "hilo" ? [15, 55, 90, 125, 165] : [-5, 30, 65, 90, 115, 150, 185];
+    const angs = t.game === "race" || t.game === "roulette" ? [20, 55, 90, 125, 160] : t.game === "hilo" ? [15, 55, 90, 125, 165] : [-5, 30, 65, 90, 115, 150, 185];
     t.chairs = angs.map((a) => {
       const r = (a * Math.PI) / 180;
       return { x: t.x + Math.cos(r) * (t.rx + 30), y: t.y + Math.sin(r) * (t.ry + 30) };
@@ -46,8 +51,8 @@
     return true;
   };
   const NODES = [];
-  for (const y of [250, 800, 1360]) for (const x of [345, 895, 1445, 1995]) NODES.push({ x, y });
-  NODES.push({ x: 1170, y: 1560 });
+  for (const y of [250, 800, 1360, 1940]) for (const x of [345, 895, 1445, 1995]) NODES.push({ x, y });
+  NODES.push({ x: 1170, y: 1560 }, { x: 1170, y: 2140 });
   const ADJ = NODES.map((a) => NODES.map((b, j) => (a !== b && clear(a, b) ? j : -1)).filter((j) => j >= 0));
   function planPath(from, to) {
     if (clear(from, to)) return [to];
@@ -135,7 +140,7 @@
   }
 
   /* ===================== מצב העולם ===================== */
-  const W = { people: [], props: [], me: null, cam: { x: 1170, y: 1300 }, z: 1, t: 0 };
+  const W = { people: [], props: [], me: null, cam: { x: 1170, y: 1860 }, z: 1, t: 0 };
   let cv, g, dpr = 1, VW = 0, VH = 0;
   const proj = (x, y) => ({ x: (x - W.cam.x) * W.z + VW / 2, y: (y - W.cam.y) * W.z * K + VH / 2 });
   const unproj = (sx, sy) => ({ x: (sx - VW / 2) / W.z + W.cam.x, y: (sy - VH / 2) / (W.z * K) + W.cam.y });
@@ -168,6 +173,9 @@
       [4, 0],
       [5, 3],
       [2, 1],
+      [6, 1],
+      [6, 3],
+      [7, 2],
     ].forEach(([ti, ci]) => {
       const c = TABLES[ti].chairs[ci];
       W.people.push(new Person({ x: c.x, y: c.y, look: C.randomLook(rnd), sit: true, npc: true, chairOf: TABLES[ti], chairI: ci }));
@@ -219,12 +227,14 @@
       );
     }
     /* מכונות מזל */
-    for (let i = 0; i < 9; i++) W.props.push({ kind: "slot", x: 175, y: 260 + i * 150, seed: rnd() * 100, spin: 0, sym: [0, 1, 2] });
+    for (let i = 0; i < 13; i++) W.props.push({ kind: "slot", x: 175, y: 260 + i * 150, seed: rnd() * 100, spin: 0, sym: [0, 1, 2] });
     for (const [x, y] of [
       [300, 175],
       [2050, 175],
-      [300, 1625],
-      [2050, 1625],
+      [300, 2205],
+      [2050, 2205],
+      [300, 1360],
+      [2050, 1360],
       [895, 175],
       [1445, 175],
     ])
@@ -402,14 +412,14 @@
     g.fillRect(0, 120, WORLD.w, WORLD.h - 120);
     /* שטיח אדום בכניסה */
     g.fillStyle = "#9b1022";
-    g.fillRect(1090, 1380, 160, 340);
+    g.fillRect(1090, 1380, 160, 920);
     g.fillStyle = "#e6b647";
-    g.fillRect(1086, 1380, 6, 340);
-    g.fillRect(1248, 1380, 6, 340);
+    g.fillRect(1086, 1380, 6, 920);
+    g.fillRect(1248, 1380, 6, 920);
     /* פסי זהב סביב האולם */
     g.strokeStyle = "rgba(230,182,71,.5)";
     g.lineWidth = 6;
-    g.strokeRect(240, 150, 1860, 1500);
+    g.strokeRect(240, 150, 1860, 2080);
     g.restore();
     /* בריכות אור של נברשות */
     g.save();
@@ -535,7 +545,7 @@
       if (t.game === "bj") {
         g.ellipse(p.x, p.y - e + dy - ry * 0.35, rx * sx, ry * sy * 1.3, 0, 0, Math.PI);
         g.closePath();
-      } else if (t.game === "race") {
+      } else if (t.game === "race" || t.game === "roulette") {
         const w = rx * sx * 2;
         const hh = ry * sy * 2;
         g.roundRect ? g.roundRect(p.x - w / 2, p.y - e + dy - hh / 2, w, hh, 26 * z) : g.rect(p.x - w / 2, p.y - e + dy - hh / 2, w, hh);
@@ -550,7 +560,13 @@
     wood.addColorStop(1, "#4a2a12");
     g.fillStyle = wood;
     g.fill();
-    const fc = { poker: ["#1f8a4c", "#0d4d2a"], bj: ["#1f8a4c", "#0d4d2a"], race: ["#1b3550", "#0b1a2a"], hilo: ["#3a2a8a", "#1a1046"] }[t.game];
+    const fc = {
+      poker: ["#1f8a4c", "#0d4d2a"],
+      bj: ["#1f8a4c", "#0d4d2a"],
+      race: ["#1b3550", "#0b1a2a"],
+      hilo: ["#3a2a8a", "#1a1046"],
+      roulette: ["#1f8a4c", "#0d4d2a"],
+    }[t.game];
     shape(0, 0.88, 0.84);
     const felt = g.createRadialGradient(p.x, p.y - e, 4, p.x, p.y - e, rx);
     felt.addColorStop(0, fc[0]);
@@ -569,10 +585,78 @@
     g.font = `800 ${Math.round(22 * z)}px "Secular One", Heebo`;
     g.textAlign = "center";
     g.direction = "rtl";
-    g.fillText(C.GAMES[t.game].title, 0, t.game === "race" ? -t.ry * z * 0.55 : 8 * z);
+    g.fillText(C.GAMES[t.game].title, 0, t.game === "race" || t.game === "roulette" ? -t.ry * z * 0.55 : 8 * z);
     g.restore();
     /* פרטים חיים על השולחן */
-    if (t.game === "race") {
+    if (t.game === "roulette") {
+      const cy = p.y - e + 4 * z;
+      const wx = p.x - rx * 0.5;
+      const wr = 52 * z;
+      g.save();
+      g.translate(wx, cy);
+      g.scale(1, K);
+      g.beginPath();
+      g.arc(0, 6 * z, wr * 1.12, 0, 7);
+      g.fillStyle = "rgba(0,0,0,.45)";
+      g.fill();
+      g.beginPath();
+      g.arc(0, 0, wr * 1.12, 0, 7);
+      g.fillStyle = "#5a3417";
+      g.fill();
+      g.strokeStyle = "#d8b45a";
+      g.lineWidth = 2 * z;
+      g.stroke();
+      const spin = W.t * (active ? 1.6 : 0.5);
+      for (let i = 0; i < 37; i++) {
+        const a = spin + (i / 37) * Math.PI * 2;
+        g.beginPath();
+        g.moveTo(0, 0);
+        g.arc(0, 0, wr, a, a + (Math.PI * 2) / 37 + 0.01);
+        g.closePath();
+        g.fillStyle = i === 0 ? "#0f8a3c" : i % 2 ? "#c8102e" : "#161616";
+        g.fill();
+      }
+      g.beginPath();
+      g.arc(0, 0, wr * 0.55, 0, 7);
+      g.fillStyle = "#8a5a2c";
+      g.fill();
+      g.beginPath();
+      g.arc(0, 0, wr * 0.14, 0, 7);
+      g.fillStyle = "#e9c86e";
+      g.fill();
+      const ba = -W.t * 2.6;
+      g.beginPath();
+      g.arc(Math.cos(ba) * wr * 1.02, Math.sin(ba) * wr * 1.02, 4 * z, 0, 7);
+      g.fillStyle = "#fff";
+      g.fill();
+      g.restore();
+      /* לוח המספרים */
+      const bw = rx * 0.95;
+      const bh = 62 * z;
+      g.save();
+      g.translate(p.x + rx * 0.3, cy);
+      g.scale(1, K);
+      for (let c = 0; c < 12; c++)
+        for (let r = 0; r < 3; r++) {
+          g.fillStyle = (c + r) % 2 ? "#c8102e" : "#161616";
+          g.fillRect(-bw / 2 + (c * bw) / 12, -bh / 2 + (r * bh) / 3, bw / 12 - z, bh / 3 - z);
+        }
+      g.strokeStyle = "rgba(255,255,255,.7)";
+      g.lineWidth = z;
+      g.strokeRect(-bw / 2, -bh / 2, bw, bh);
+      if (active)
+        ["#ff4d6d", "#3ea6ff", "#3ddc84", "#ffd23f"].forEach((c, i) => {
+          const x = -bw / 2 + ((((i * 5 + Math.floor(W.t / 3)) % 12) + 0.5) * bw) / 12;
+          const y = -bh / 2 + (((i % 3) + 0.5) * bh) / 3;
+          g.beginPath();
+          g.arc(x, y, 5 * z, 0, 7);
+          g.fillStyle = c;
+          g.fill();
+          g.strokeStyle = "#fff";
+          g.stroke();
+        });
+      g.restore();
+    } else if (t.game === "race") {
       const tw = rx * 0.62;
       const th = ry * 0.5;
       g.strokeStyle = "#c9a43f";
@@ -1294,10 +1378,10 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     if (entered) return;
     entered = true;
     const p = C.profile.get();
-    W.me = new Person({ x: 1170, y: 1600, look: p.look, name: p.name, speed: 290 });
-    W.me.goTo({ x: 1170, y: 1480 });
+    W.me = new Person({ x: 1170, y: 2200, look: p.look, name: p.name, speed: 290 });
+    W.me.goTo({ x: 1170, y: 2060 });
     W.cam.x = 1170;
-    W.cam.y = 1300;
+    W.cam.y = 1860;
     document.body.classList.add("entered");
     Lobby.start();
     setTimeout(greetOnEnter, 600);
@@ -1314,7 +1398,7 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     buildWorld();
     resize();
     bindInput();
-    W.me = new Person({ x: 1170, y: 1500, look: C.cleanLook(), name: "" });
+    W.me = new Person({ x: 1170, y: 2080, look: C.cleanLook(), name: "" });
     requestAnimationFrame(loop);
     const snd = $("#soundBtn");
     const sndTxt = () => (snd.textContent = C.sfx.on ? "🔊" : "🔇");
