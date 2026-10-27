@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="he" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>קזינו המאוחדת 🎰</title>
+    <meta name="description" content="הקזינו הווירטואלי של המאוחדת — פוקר, בלאק ג'ק, גבוה־נמוך ומירוץ גולות עם חברים. כסף משחק בלבד." />
+    <meta name="theme-color" content="#120608" />
+    <link rel="icon" type="image/svg+xml" href="favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Heebo:wght@400;600;800;900&family=Secular+One&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="casino/casino.css?v=3" />
+  </head>
+  <body>
+    <canvas id="floor" aria-label="אולם הקזינו"></canvas>
+
+    <header class="hud">
+      <a class="hud-back" href="./" title="חזרה לאתר המאוחדת">→ <span>לאתר</span></a>
+      <div class="hud-logo">
+        <img src="favicon.svg" alt="" />
+        <div><b>קזינו המאוחדת</b><small>CASINO · HAMEUHEDET</small></div>
+      </div>
+      <div class="hud-right">
+        <span class="hud-online" id="online" title="מחוברים עכשיו לקזינו"><i></i><b>1</b><span> באולם</span></span>
+        <button class="hud-wallet" id="walletBtn" title="הארנק שלי"><span class="coin">$</span><b id="cash">100</b></button>
+        <button class="hud-btn" id="tablesBtn" title="רשימת השולחנות">🎲<span> שולחנות</span></button>
+        <button class="hud-btn hud-me" id="meBtn" title="הדמות שלי"><img id="meAv" alt="" /></button>
+        <button class="hud-btn" id="soundBtn" title="צלילים">🔊</button>
+      </div>
+    </header>
+
+    <div class="net-banner" id="netBanner" hidden>
+      📡 אין חיבור לשרת המשותף כרגע — אפשר לשחק לבד מול המחשב. מנסים שוב ברקע…
+    </div>
+
+    <div class="hint" id="hint">
+      👆 לחצו על הרצפה כדי ללכת · לחצו על שולחן או על השלט שלו כדי לגשת · <span class="kb">חיצים / WASD</span>
+    </div>
+
+    <section class="sheet" id="tableCard" hidden aria-live="polite"></section>
+    <div class="drawer" id="tablesDrawer" hidden></div>
+    <div class="modal" id="profile" hidden></div>
+    <div id="toasts"></div>
+
+    <div class="loading" id="loading">
+      <img src="favicon.svg" alt="" />
+      <b>פותחים את דלתות הקזינו…</b>
+    </div>
+
+    <noscript><p class="nojs">הקזינו צריך JavaScript כדי לעבוד.</p></noscript>
+
+    <script src="casino/core.js?v=3"></script>
+    <script src="casino/avatar.js?v=3"></script>
+    <script src="casino/table.js?v=3"></script>
+    <script src="casino/games/bj.js?v=3"></script>
+    <script src="casino/games/hilo.js?v=3"></script>
+    <script src="casino/games/race.js?v=3"></script>
+    <script src="casino/games/poker.js?v=3"></script>
+    <script src="casino/floor.js?v=3"></script>
+  </body>
+</html>

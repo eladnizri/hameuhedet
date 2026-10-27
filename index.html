@@ -122,6 +122,72 @@
         font-weight: 900;
         font-size: 18px;
         white-space: nowrap;
+        background: none;
+        border: 0;
+        padding: 0;
+        color: inherit;
+        cursor: pointer;
+      }
+      .brand-wrap {
+        position: relative;
+      }
+      .brand-caret {
+        font-size: 12px;
+        color: var(--team-1);
+        transition: transform 0.2s;
+      }
+      .brand[aria-expanded="true"] .brand-caret {
+        transform: rotate(180deg);
+      }
+      .brand-menu {
+        position: absolute;
+        top: calc(100% + 12px);
+        inset-inline-start: 0;
+        min-width: 270px;
+        padding: 8px;
+        display: grid;
+        gap: 4px;
+        border: 1px solid var(--line);
+        border-radius: 16px;
+        background: rgba(20, 16, 16, 0.98);
+        box-shadow: var(--shadow);
+        opacity: 0;
+        visibility: hidden;
+        transform: translateY(-6px);
+        transition: 0.18s;
+        z-index: 60;
+      }
+      .brand-menu.open {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+      }
+      .brand-menu a {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 12px;
+        font-weight: 800;
+        font-size: 16px;
+      }
+      .brand-menu a:hover {
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .brand-menu small {
+        display: block;
+        font-weight: 400;
+        font-size: 12px;
+        color: var(--txt-dim);
+      }
+      .brand-menu .casino-link {
+        background: linear-gradient(135deg, #3a0a12, #1b0b0b 60%);
+        border: 1px solid rgba(230, 182, 71, 0.45);
+        color: var(--team-1);
+        box-shadow: 0 0 22px rgba(230, 182, 71, 0.15) inset;
+      }
+      .brand-menu .casino-link:hover {
+        background: linear-gradient(135deg, #52101b, #251010 60%);
       }
       .crest-sm {
         width: 34px;
@@ -3787,10 +3853,28 @@
 
     <header class="topbar">
       <div class="wrap">
-        <a class="brand" href="#top">
-          <svg class="crest-sm"><use href="#crest" /></svg>
-          <span data-team-name>המאוחדת</span>
-        </a>
+        <div class="brand-wrap">
+          <button
+            class="brand"
+            id="brandBtn"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            <svg class="crest-sm"><use href="#crest" /></svg>
+            <span data-team-name>המאוחדת</span>
+            <span class="brand-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="brand-menu" id="brandMenu" role="menu">
+            <a href="#top" role="menuitem">🏠 <span>אתר הקבוצה</span></a>
+            <a href="casino.html" class="casino-link" role="menuitem">
+              🎰
+              <span
+                >קזינו המאוחדת
+                <small>פוקר · בלאק ג׳ק · גבוה־נמוך · מירוץ גולות</small></span
+              >
+            </a>
+          </div>
+        </div>
         <button
           class="menu-toggle"
           id="menuToggle"
@@ -6037,6 +6121,25 @@
       navLinks.forEach((link) =>
         link.addEventListener("click", closeMobileMenu),
       );
+
+      const brandBtn = $("#brandBtn");
+      const brandMenu = $("#brandMenu");
+      const setBrandMenu = (open) => {
+        brandMenu.classList.toggle("open", open);
+        brandBtn.setAttribute("aria-expanded", String(open));
+      };
+      brandBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        closeMobileMenu();
+        setBrandMenu(!brandMenu.classList.contains("open"));
+      });
+      brandMenu.addEventListener("click", () => setBrandMenu(false));
+      document.addEventListener("click", (e) => {
+        if (!e.target.closest(".brand-wrap")) setBrandMenu(false);
+      });
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape") setBrandMenu(false);
+      });
       const spy = new IntersectionObserver(
         (entries) => {
           entries.forEach((en) => {
