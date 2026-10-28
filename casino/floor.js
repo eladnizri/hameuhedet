@@ -16,13 +16,13 @@
     { key: "poker-2", game: "poker", name: "פוקר · שולחן 2", x: 620, y: 1080, color: "#e6b647", fem: true },
     { key: "bj-2", game: "bj", name: "בלאק ג'ק · שולחן 2", x: 1170, y: 1080, color: "#ff4d6d", fem: true },
     { key: "hilo-1", game: "hilo", name: "גבוה־נמוך", x: 1720, y: 1080, color: "#c86bff" },
-    { key: "roulette-1", game: "roulette", name: "רולטה · שולחן 1", x: 620, y: 1640, color: "#ffd23f" },
-    { key: "roulette-2", game: "roulette", name: "רולטה · שולחן 2", x: 1720, y: 1640, color: "#ffd23f", fem: true },
+    { key: "roulette-1", game: "roulette", name: "רולטה", x: 620, y: 1640, color: "#ffd23f" },
+    { key: "uth-1", game: "uth", name: "אולטימייט הולדם", x: 1720, y: 1640, color: "#3ddc84", fem: true },
   ]);
   for (const t of TABLES) {
     Object.assign(
       t,
-      { poker: { rx: 200, ry: 112 }, bj: { rx: 185, ry: 110 }, race: { rx: 215, ry: 118 }, hilo: { rx: 150, ry: 100 }, roulette: { rx: 215, ry: 118 } }[t.game],
+      { poker: { rx: 200, ry: 112 }, bj: { rx: 185, ry: 110 }, race: { rx: 215, ry: 118 }, hilo: { rx: 150, ry: 100 }, roulette: { rx: 215, ry: 118 }, uth: { rx: 185, ry: 110 } }[t.game],
     );
     t.ax = t.x;
     t.ay = t.y + t.ry + 75;
@@ -542,7 +542,7 @@
     g.fillRect(p.x - 26 * z, p.y - e, 52 * z, e);
     const shape = (dy, sx, sy) => {
       g.beginPath();
-      if (t.game === "bj") {
+      if (t.game === "bj" || t.game === "uth") {
         g.ellipse(p.x, p.y - e + dy - ry * 0.35, rx * sx, ry * sy * 1.3, 0, 0, Math.PI);
         g.closePath();
       } else if (t.game === "race" || t.game === "roulette") {
@@ -566,6 +566,7 @@
       race: ["#1b3550", "#0b1a2a"],
       hilo: ["#3a2a8a", "#1a1046"],
       roulette: ["#1f8a4c", "#0d4d2a"],
+      uth: ["#1d5fa8", "#0b2c55"],
     }[t.game];
     shape(0, 0.88, 0.84);
     const felt = g.createRadialGradient(p.x, p.y - e, 4, p.x, p.y - e, rx);
@@ -579,7 +580,7 @@
     g.stroke();
     /* הדפס על הבד */
     g.save();
-    g.translate(p.x, p.y - e + (t.game === "bj" ? ry * 0.15 : 0));
+    g.translate(p.x, p.y - e + (t.game === "bj" || t.game === "uth" ? ry * 0.15 : 0));
     g.scale(1, K);
     g.fillStyle = "rgba(230,182,71,.35)";
     g.font = `800 ${Math.round(22 * z)}px "Secular One", Heebo`;

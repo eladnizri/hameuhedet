@@ -2947,6 +2947,170 @@ body.at-table .offer {
   }
 }
 
+/* ===== אולטימייט הולדם ===== */
+.uth-felt {
+  background: radial-gradient(ellipse at 50% 30%, #2a78c8, #12407a 55%, #0a2448);
+}
+.uth-felt .felt-print {
+  top: 44%;
+}
+.uth-mid {
+  position: absolute;
+  z-index: 3;
+  top: 31%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: flex-start;
+  gap: 30px;
+  direction: ltr;
+}
+.portrait .uth-mid {
+  top: 30%;
+  gap: 14px;
+}
+.uth-mid .pk-board {
+  position: relative;
+  top: auto;
+  left: auto;
+  transform: none;
+}
+.uth-dbox {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  min-width: 134px;
+}
+.uth-dcards {
+  min-height: 90px;
+}
+.uth-dcards .pc + .pc {
+  margin-left: 6px;
+}
+.uth-dl {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: var(--gold-2);
+  font-size: 13px;
+  font-weight: 800;
+  white-space: nowrap;
+  direction: rtl;
+}
+.uth-dl.q {
+  background: #1f7a43;
+  color: #fff;
+}
+.uth-dl.nq {
+  background: #8f0f20;
+  color: #fff;
+}
+.uth-cards {
+  position: absolute;
+  bottom: calc(100% + 28px);
+}
+.uth-cards .pc + .pc {
+  margin-left: -22px;
+}
+.seat.me .uth-cards .pc {
+  width: 72px;
+  height: 100px;
+}
+.uth-bets {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  display: flex;
+  gap: 3px;
+  direction: ltr;
+}
+.uth-bets span {
+  padding: 1px 6px;
+  border-radius: 999px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px #000;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  transition: 0.3s;
+}
+.uth-bets .ante {
+  background: #c62828;
+}
+.uth-bets .blind {
+  background: #1f5fbf;
+}
+.uth-bets .play {
+  background: linear-gradient(180deg, #ffe08a, #c9962a);
+  color: #2a1a00;
+  text-shadow: none;
+  animation: pop 0.4s;
+}
+.uth-bets .trips {
+  background: #7b2cbf;
+}
+.uth-bets .won {
+  outline: 2px solid var(--gold-2);
+  box-shadow: 0 0 12px var(--gold-2);
+}
+.uth-bets .lost {
+  opacity: 0.35;
+  text-decoration: line-through;
+}
+.uth-bets .push {
+  opacity: 0.75;
+}
+.uth-res {
+  margin-top: 3px;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--gold-2);
+  white-space: nowrap;
+}
+.uth-res:empty {
+  display: none;
+}
+.uth-pay {
+  position: absolute;
+  z-index: 3;
+  top: 10px;
+  left: 10px;
+  display: flex;
+  gap: 8px;
+  transform-origin: top left;
+}
+.portrait .uth-pay {
+  transform: scale(0.8);
+}
+.uth-pay > div {
+  min-width: 112px;
+  padding: 6px 9px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.6);
+  border: 1px solid rgba(230, 182, 71, 0.35);
+  font-size: 11px;
+  line-height: 1.45;
+}
+.uth-pay b {
+  display: block;
+  color: var(--gold-2);
+  font-size: 12px;
+  text-align: center;
+}
+.uth-pay span {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.uth-pay i,
+.uth-pay em {
+  font-style: normal;
+}
+.uth-pay em {
+  color: var(--gold-2);
+  direction: ltr;
+}
+
 /* ===== רולטה ===== */
 .g-roulette .shoe,
 .g-roulette .dealer {

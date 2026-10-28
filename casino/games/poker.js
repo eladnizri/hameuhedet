@@ -103,6 +103,7 @@
     if (i < main || cw === 4 || cw === 8) return `${handName(win)} גבוה יותר מ${handName(lose)}`;
     return `${handName(win)} מול ${handName(lose)} — הכריע הקיקר ${R(a[i])} מול ${R(b[i])}`;
   }
+  C.PK = { score, handName, best5, versus };
   function equity(hole, board, nOpp, iters = 160) {
     const used = new Set([...hole, ...board].map((c) => c.r + c.s));
     const rest = [];

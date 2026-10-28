@@ -162,7 +162,8 @@
   function dealerPlay(S, H) {
     S.phase = "dealer";
     S.dealer.hole = false;
-    const live = S.order.some((id) => S.hands[id].some((h) => val(h.cards).t <= 21 && !h.bj));
+    /* יד הכפלה שעדיין סגורה נחשבת חיה — הדילר לא "יודע" אם היא נשרפה */
+    const live = S.order.some((id) => S.hands[id].some((h) => (h.hidden || val(h.cards).t <= 21) && !h.bj));
     const step = () => {
       const v = val(S.dealer.cards).t;
       if (live && v < 17) {
@@ -170,11 +171,31 @@
         S.dealer.cards.push(draw(S));
         H.push();
         H.after(650, step);
-      } else H.after(350, () => settle(S, H));
+      } else H.after(500, () => revealDoubles(S, H));
     };
     H.say(`הדילר הפך: ${val(S.dealer.cards).t}`);
     H.push();
     H.after(650, step);
+  }
+
+  /* רק אחרי שהדילר סיים — פותחים את הקלפים ההפוכים של מי שהכפיל, אחד אחד */
+  function revealDoubles(S, H) {
+    const dbl = [];
+    for (const id of S.order) S.hands[id].forEach((h) => h.hidden && dbl.push([id, h]));
+    if (!dbl.length) return settle(S, H);
+    const dv = val(S.dealer.cards).t;
+    S.phase = "reveal";
+    H.say(`לדילר ${dv > 21 ? `${dv} — נשרף!` : dv}. ועכשיו… פותחים את קלפי ההכפלה 🥁`);
+    H.push();
+    dbl.forEach(([id, h], i) =>
+      H.after(1300 + i * 1300, () => {
+        h.hidden = false;
+        const v = val(h.cards).t;
+        say(S, id, v > 21 ? `באסט! ${v} 💥` : v === 21 ? "21! 🎯" : `הכפלה → ${v}`);
+        H.push();
+      }),
+    );
+    H.after(1300 + dbl.length * 1300 + 400, () => settle(S, H));
   }
 
   function settle(S, H) {
@@ -192,6 +213,7 @@
       let net = 0;
       const parts = [];
       for (const h of S.hands[id]) {
+        h.hidden = false;
         const pv = val(h.cards).t;
         let pay = 0;
         if (pv > 21) h.res = "bust";
@@ -305,8 +327,12 @@
       return false;
     },
     view(S) {
+      const hands = {};
+      for (const id in S.hands)
+        hands[id] = S.hands[id].map((h) => (h.hidden ? { ...h, cards: h.cards.map((c, i) => (i === h.cards.length - 1 ? C.hideCard(c) : c)) } : h));
       return {
         ...S,
+        hands,
         shoe: undefined,
         shoeN: S.shoe.length,
         dealer: { ...S.dealer, cards: S.dealer.cards.map((c, i) => (i === 1 && S.dealer.hole ? C.hideCard(c) : c)) },
@@ -349,9 +375,10 @@
         p.stack = C.r2(p.stack - h.bet);
         h.bet *= 2;
         h.dbl = true;
+        h.hidden = true;
         h.cards.push(draw(S));
         h.done = true;
-        say(S, pid, val(h.cards).t > 21 ? `באסט! ${val(h.cards).t} 💥` : `הכפלה → ${val(h.cards).t}`);
+        say(S, pid, "הכפלה! הקלף נשאר הפוך 🤫");
       } else if (a.a === "split") {
         if (!canSplit(S, pid)) return;
         p.stack = C.r2(p.stack - h.bet);
@@ -511,6 +538,7 @@
       else if (myTurn) mode = "play";
       else if (V.phase === "deal") txt = "הדילר מחלק…";
       else if (V.phase === "play") txt = V.cur ? `התור של ${V.players[V.cur.pid]?.name || ""}…` : "";
+      else if (V.phase === "reveal") txt = "רגע של מתח… פותחים את קלף ההכפלה 🥁";
       else if (V.phase === "dealer") txt = "הדילר משחק…";
       else if (V.phase === "done") txt = "סיבוב חדש מתחיל עוד רגע…";
       if (V.phase !== "bet" && !V.hands?.[me] && V.phase !== "done") txt += " (אתם בסיבוב הבא)";
