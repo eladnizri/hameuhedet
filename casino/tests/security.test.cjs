@@ -243,6 +243,51 @@ test("exact Omri name gets a one-time capped bonus", async () => {
   assert.equal(reopened.casino.wallet.cash, 99500);
 });
 
+test("broc receives a persistent 10000 bonus without repeated appearance refills", async () => {
+  const env = environment();
+  env.load("avatar.js");
+  const { casino } = env;
+  await casino.wallet.init();
+  casino.profile.set({ name: "BROC", look: {} });
+  assert.equal(casino.wallet.cash, 100);
+  casino.profile.set({ name: "broc", look: {} });
+  assert.equal(casino.wallet.cash, 10000);
+  casino.wallet.add(-500);
+  casino.profile.set({ name: "broc", look: {} });
+  assert.equal(casino.wallet.cash, 9500);
+  await flush();
+  const reopened = environment(env.disk);
+  await reopened.casino.wallet.init();
+  reopened.casino.wallet.grantName("broc");
+  assert.equal(reopened.casino.wallet.cash, 9500);
+  casino.profile.set({ name: "Other", look: {} });
+  casino.profile.set({ name: "broc", look: {} });
+  assert.equal(casino.wallet.cash, 10000);
+});
+
+test("broc bonus includes held funds and never reduces a higher balance", async () => {
+  const env = environment();
+  const wallet = env.casino.wallet;
+  await wallet.init();
+  wallet.add(-50);
+  wallet.hold("table", 50);
+  wallet.grantName("broc");
+  assert.equal(wallet.cash + wallet.held, 10000);
+  wallet.grantName("עומרי");
+  wallet.grantName("broc");
+  assert.equal(wallet.cash + wallet.held, 100000);
+});
+
+test("changing from Omri to broc resets the old bonus then grants 10000", async () => {
+  const env = environment();
+  env.load("avatar.js");
+  await env.casino.wallet.init();
+  env.casino.profile.set({ name: "עומרי", look: {} });
+  assert.equal(env.casino.wallet.cash, 100000);
+  env.casino.profile.set({ name: "broc", look: {} });
+  assert.equal(env.casino.wallet.cash, 10000);
+});
+
 test("renaming Omri resets cash and table funds, closes the table and persists the reset", async () => {
   const env = environment();
   env.load("avatar.js");

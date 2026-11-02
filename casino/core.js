@@ -130,6 +130,7 @@
         cash: saved ? C.amount(C.amount(saved.cash) + C.amount(saved.held)) : C.DAILY,
         day: typeof saved?.day === "string" ? saved.day : today(),
         omriGranted: saved?.omriGranted === true,
+        brocGranted: saved?.brocGranted === true,
       };
       try {
         localStorage.removeItem(WKEY);
@@ -221,16 +222,19 @@
     },
     grantName(name) {
       if (!walletState) return;
-      if (String(name).normalize("NFC").trim() !== "עומרי") {
-        if (walletState.omriGranted) {
-          walletState.omriGranted = false;
-          persistWallet();
-        }
+      const normalized = String(name).normalize("NFC").trim();
+      const omri = normalized === "עומרי";
+      const broc = normalized === "broc";
+      const changed = (walletState.omriGranted && !omri) || (walletState.brocGranted && !broc);
+      if (!omri) walletState.omriGranted = false;
+      if (!broc) walletState.brocGranted = false;
+      const grant = omri ? "omriGranted" : broc ? "brocGranted" : null;
+      if (!grant || walletState[grant]) {
+        if (changed) persistWallet();
         return;
       }
-      if (walletState.omriGranted) return;
-      walletState.omriGranted = true;
-      walletState.cash = MAX_CASH - heldStack;
+      walletState[grant] = true;
+      walletState.cash = Math.max(walletState.cash, (omri ? MAX_CASH : 10000) - heldStack);
       persistWallet();
       this.emit();
     },
