@@ -3004,6 +3004,46 @@ body.at-table .offer {
   border-radius: 6px;
 }
 @media (max-width: 480px) {
+  .hud {
+    gap: 6px;
+    padding-inline: 8px;
+  }
+  .hud-logo,
+  .hud-online {
+    display: none;
+  }
+  .hud-back {
+    padding: 6px 9px;
+  }
+  .hud-right {
+    gap: 4px;
+    min-width: 0;
+  }
+  .hud-right > * {
+    flex-shrink: 0;
+  }
+  .hud-wallet {
+    gap: 4px;
+    padding: 6px 8px;
+    font-size: 16px;
+  }
+  .hud-wallet .coin {
+    width: 20px;
+    height: 20px;
+    font-size: 13px;
+  }
+  .hud-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+  }
+  .hud-me img {
+    width: 34px;
+    height: 68px;
+    margin-top: 28px;
+  }
   #smokingBtn {
     width: 32px;
     min-width: 32px;
