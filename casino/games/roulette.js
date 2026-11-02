@@ -476,7 +476,7 @@
       H.say("שימו ז'יטונים — ולחצו סובבו 🎡");
     },
     solo(S, H) {
-      for (let i = 0; i < 2; i++) H.addBot(BOT_NAMES[i], C.randomLook(), 100);
+      H.addBot(BOT_NAMES[0], C.randomLook(), 100);
     },
     status: (V) => (V.phase === "bet" ? "מקבלים הימורים" : "הגלגל מסתובב!"),
     pending: (V, me) => (V.phase === "bet" || V.open ? total(V.bets[me]) : 0),

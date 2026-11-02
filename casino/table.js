@@ -205,6 +205,32 @@
     });
 
   /* ===================== סשן של שולחן ===================== */
+  const balanceHistory = new WeakMap();
+  function auditBalances(session, approve = false) {
+    const history = balanceHistory.get(session) || new Map();
+    balanceHistory.set(session, history);
+    for (const [id, player] of Object.entries(session.S.players)) {
+      if (player.left) continue;
+      const total = player.stack + (player.bank || 0) + (session.G.pending?.(session.S, id) || 0);
+      const previous = history.get(id);
+      const exempt = player.name.normalize("NFC").trim() === "עומרי";
+      if (!approve && !exempt && previous != null && (!Number.isFinite(total) || total > previous + 0.01)) {
+        history.set(id, 100);
+        if (id === session.selfId) {
+          session.close();
+          C.wallet.resetSuspicious();
+          return false;
+        }
+        player.stack = 100;
+        player.bank = 0;
+        history.set(id, 100 + (session.G.pending?.(session.S, id) || 0));
+        session.room?.sendTo(id, { t: "balance-reset" });
+        session.dropPlayer(id);
+      } else history.set(id, total);
+    }
+    return !session.closed;
+  }
+
   class Session {
     constructor(def, mode, hooks = {}) {
       this.def = def;
@@ -221,7 +247,7 @@
     }
     meta() {
       const pr = C.profile.get();
-      return { name: pr.name, look: pr.look, buyin: this.stack };
+      return { name: pr.name, look: pr.look, buyin: this.stack, bank: C.wallet.cash };
     }
 
     async start(buyin) {
@@ -231,7 +257,7 @@
     }
 
     async connect(buyin) {
-      buyin = C.r2(Math.max(0, Math.min(buyin, C.wallet.cash)));
+      buyin = Math.min(C.amount(buyin), C.wallet.cash);
       C.wallet.add(-buyin);
       this.stack = buyin;
       C.wallet.hold(this.def.key, buyin);
@@ -250,7 +276,7 @@
         meta: () => this.meta(),
         join: (id, m) => {
           if (!this.S) return;
-          this.addPlayer(id, m);
+          this.addPlayer(id, { ...m, bot: false });
           this.push();
           this.setNet();
         },
@@ -280,6 +306,7 @@
     }
 
     hostInit() {
+      balanceHistory.set(this, new Map());
       const S = (this.S = {
         key: this.def.key,
         game: this.def.game,
@@ -301,7 +328,10 @@
         after: (ms, fn) => {
           const t = setTimeout(() => {
             this.tl.delete(t);
-            if (!this.closed && this.S === S) fn();
+            if (!this.closed && this.S === S && auditBalances(this)) {
+              fn();
+              auditBalances(this, true);
+            }
           }, ms);
           this.tl.add(t);
           return t;
@@ -313,8 +343,9 @@
             name,
             setTimeout(() => {
               this.named.delete(name);
-              if (!this.closed && this.S === S) {
+              if (!this.closed && this.S === S && auditBalances(this)) {
                 fn();
+                auditBalances(this, true);
                 this.push();
               }
             }, ms),
@@ -352,8 +383,11 @@
         },
         name: (id) => S.players[id]?.name || "",
         addBot: (name, look, stack) => {
+          if (S.botCreated || Object.values(S.players).some((player) => player.bot)) return null;
           const id = "bot-" + C.uid();
-          return this.addPlayer(id, { name, look, buyin: stack, bot: true }) ? id : null;
+          if (!this.addPlayer(id, { name, look, buyin: stack, bot: true })) return null;
+          S.botCreated = true;
+          return id;
         },
         remove: (id) => this.removePlayer(id),
       };
@@ -369,20 +403,24 @@
         return false;
       }
       const name = String(m.name || "אורח").replace(/\s+/g, " ").trim().slice(0, 16) || "אורח";
-      const buy = C.r2(C.clamp(+m.buyin || 0, 0, 1e6));
-      S.players[id] = { id, name, look: C.cleanLook(m.look), stack: buy, seat, bot: !!m.bot };
+      const buy = Number.isFinite(m.buyin) ? C.r2(C.clamp(m.buyin, 0, 100000)) : 0;
+      const bank = Math.min(C.amount(m.bank), 100000 - buy);
+      S.players[id] = { id, name, look: C.cleanLook(m.look), stack: buy, bank, seat, bot: !!m.bot };
       S.seats[seat] = id;
       if (!m.bot) this.H.log(`${name} הצטרף/ה לשולחן`);
       this.G.onJoin?.(S, id, this.H);
+      balanceHistory.get(this).set(id, buy + bank);
       return true;
     }
     dropPlayer(id) {
       const S = this.S;
       const p = S?.players[id];
       if (!p || p.left) return;
+      if (!auditBalances(this)) return;
       p.left = true;
       this.H.log(`${p.name} קם/ה מהשולחן`);
       if (this.G.onLeave ? this.G.onLeave(S, id, this.H) : true) this.removePlayer(id);
+      auditBalances(this, true);
       this.push();
     }
     removePlayer(id) {
@@ -402,7 +440,10 @@
         else if (m.t === "bye") this.dropPlayer(from);
         return;
       }
-      if (m.t === "state" && m.S) {
+      if (m.t === "balance-reset") {
+        this.close();
+        C.wallet.resetSuspicious();
+      } else if (m.t === "state" && m.S) {
         m.S._recv = Date.now();
         this.render(m.S);
       } else if (m.t === "chat" && m.m) this.addChat(m.m);
@@ -486,14 +527,25 @@
       }
     }
     hostAct(pid, a) {
+      if (!auditBalances(this)) return;
       const p = this.S.players[pid];
+      if (!p || p.left || !a || typeof a !== "object") return;
+      for (const field of ["amt", "to", "i"])
+        if (field in a && (!Number.isFinite(a[field]) || a[field] < 0 || a[field] > 100000)) return;
       if (a.a === "topup") {
         const amt = C.r2(+a.amt);
-        if (amt > 0 && amt <= 1e6) {
+        const pending = C.amount(this.G.pending?.(this.S, pid) || 0);
+        if (p.bank < 1 && p.stack + pending < 1 && !this.G.atStake?.(this.S, pid) && amt === C.DAILY && Date.now() - (p.refillAt || 0) >= 5000) {
+          p.bank = C.DAILY;
+          p.refillAt = Date.now();
+        }
+        if (amt > 0 && amt <= p.bank && p.stack + pending + amt <= 100000) {
+          p.bank = C.r2(p.bank - amt);
           p.stack = C.r2(p.stack + amt);
           this.H.log(`${p.name} הביא/ה עוד ${C.money(amt)} לשולחן`);
         }
       } else this.G.act(this.S, pid, a, this.H);
+      auditBalances(this, true);
       this.push();
     }
     send(a) {
@@ -512,6 +564,7 @@
         value: Math.min(cash, 20),
       });
       if (!v || this.closed) return;
+      if (v > C.wallet.cash || this.stack + v > 100000) return;
       C.wallet.add(-v);
       this.stack = C.r2(this.stack + v);
       C.wallet.hold(this.def.key, this.stack);
@@ -520,6 +573,10 @@
 
     viewFor(id) {
       const V = JSON.parse(JSON.stringify(this.G.view ? this.G.view(this.S, id) : this.S));
+      for (const player of Object.values(V.players)) {
+        delete player.bank;
+        delete player.refillAt;
+      }
       if (this.S.turnAt) V.turnLeft = this.S.turnAt + this.S.turnMs - Date.now();
       return V;
     }
@@ -529,6 +586,12 @@
       queueMicrotask(() => {
         this.pq = false;
         if (this.closed || !this.S) return;
+        if (!auditBalances(this)) return;
+        for (const [id, player] of Object.entries(this.S.players)) {
+          const pending = C.amount(this.G.pending?.(this.S, id) || 0);
+          player.stack = Math.min(C.amount(player.stack), Math.max(0, 100000 - C.amount(player.bank) - pending));
+        }
+        auditBalances(this, true);
         this.S.rev++;
         if (this.room) for (const id of this.room.conns.keys()) this.room.sendTo(id, { t: "state", S: this.viewFor(id) });
         const V = this.viewFor(this.selfId);
@@ -660,6 +723,7 @@
       addEventListener("resize", this.onResize);
       this.fit();
       this.holdT = setInterval(() => {
+        if (this.role === "host" && this.S && !auditBalances(this)) return;
         if (!this.closed && this.V?.players[this.selfId]) C.wallet.hold(this.def.key, this.stack);
         if (this.V?.turnLeft > 0) this.render(this.V, true);
       }, 4000);
@@ -702,7 +766,6 @@
         if (this.stack < 1 && C.wallet.cash < 1 && !this.G.atStake?.(V, this.selfId) && !this.refilling) {
           this.refilling = true;
           this.stack = C.r2(this.stack + C.DAILY);
-          C.wallet.hold(this.def.key, this.stack);
           this.send({ a: "topup", amt: C.DAILY });
           C.toast(`💸 נגמר הכסף? קיבלת <b>${C.money(C.DAILY)}</b> חדשים!`, "win");
         } else if (me.stack >= 1) this.refilling = false;
@@ -774,9 +837,7 @@
 
     async hostLost() {
       if (this.closed) return;
-      const s = this.stack;
-      C.wallet.hold(null);
-      C.wallet.add(s);
+      const s = C.wallet.release();
       this.S = null;
       this.room = null;
       this.role = null;
@@ -808,9 +869,7 @@
         room.send({ t: "bye" });
         setTimeout(() => room.close(), 200);
       }
-      const back = C.wallet.held;
-      C.wallet.hold(null);
-      C.wallet.add(back);
+      C.wallet.release();
       this.G.unmount?.(this.ctx);
       this.root.remove();
       document.body.classList.remove("at-table");

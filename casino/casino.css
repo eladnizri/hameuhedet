@@ -2947,6 +2947,70 @@ body.at-table .offer {
   }
 }
 
+.smoke-corner {
+  position: fixed;
+  z-index: 65;
+  left: max(12px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  max-width: calc(100% - 24px);
+  box-sizing: border-box;
+  padding: 8px;
+  border: 1px solid #68cda7;
+  border-radius: 8px;
+  background: #102b28;
+  box-shadow: 0 12px 40px #0009;
+  color: #e3fff0;
+}
+.smoke-corner[hidden],
+.at-table .smoke-corner {
+  display: none;
+}
+.smoke-head,
+.smoke-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.smoke-head b {
+  font-size: 13px;
+  white-space: nowrap;
+}
+.smoke-head {
+  display: contents;
+}
+.smoke-head button {
+  order: 3;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  padding: 0;
+  border: 1px solid #80e3bb66;
+  border-radius: 4px;
+  background: transparent;
+  color: inherit;
+}
+.smoke-actions {
+  gap: 6px;
+}
+.smoke-actions .btn {
+  flex: none;
+  min-width: 0;
+  min-height: 34px;
+  padding: 6px 10px;
+  font-size: 13px;
+  border-radius: 6px;
+}
+@media (max-width: 480px) {
+  #smokingBtn {
+    width: 32px;
+    min-width: 32px;
+    padding-inline: 0;
+  }
+}
+
 /* ===== אולטימייט הולדם ===== */
 .uth-felt {
   background: radial-gradient(ellipse at 50% 30%, #2a78c8, #12407a 55%, #0a2448);

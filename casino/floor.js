@@ -8,6 +8,9 @@
   const K = 0.62; /* דחיסת הרצפה — נותן מבט "מלמעלה באלכסון" */
   const WORLD = { w: 2400, h: 2300 };
   const WALK = { x0: 255, x1: 2085, y0: 165, y1: 2220 };
+  const SMOKING = { x: 1720, y: 2025, rx: 180, ry: 115, duration: 10000 };
+  const SMOKING_TABLES = [-95, 95].map((offset) => ({ x: SMOKING.x + offset, y: SMOKING.y - 20 }));
+  const EXTINGUISH_MS = 1800;
 
   const TABLES = (C.TABLES = [
     { key: "poker-1", game: "poker", name: "פוקר · שולחן 1", x: 620, y: 520, color: "#e6b647" },
@@ -261,6 +264,8 @@
         at: s ? s.def.key : null,
         solo: !!s?.solo,
         st: sum?.st || "",
+        smoking: !!W.me?.smoking && !s,
+        extinguishing: !!W.me?.extinguishing && !s,
       };
     },
     clean(m) {
@@ -273,14 +278,18 @@
         at,
         solo: !!m.solo,
         st: String(m.st || "").slice(0, 40),
+        smoking: !!m.smoking && !at,
+        extinguishing: !!m.extinguishing && !at,
       };
     },
     set(id, m) {
       if (id === this.room?.selfId) return;
       const c = this.clean(m);
       const p = this.people.get(id);
-      if (p) Object.assign(p, c, { tx: c.x, ty: c.y, x: p.x, y: p.y, ts: Date.now() });
-      else this.people.set(id, { ...c, tx: c.x, ty: c.y, ts: Date.now(), walkT: 0 });
+      const smokeStartedAt = c.smoking && !p?.smoking ? performance.now() : p?.smokeStartedAt;
+      const smokeOutAt = c.extinguishing && !p?.extinguishing ? performance.now() : p?.smokeOutAt;
+      if (p) Object.assign(p, c, { smokeStartedAt, smokeOutAt, tx: c.x, ty: c.y, x: p.x, y: p.y, ts: Date.now() });
+      else this.people.set(id, { ...c, smokeStartedAt, smokeOutAt, tx: c.x, ty: c.y, ts: Date.now(), walkT: 0, seed: id.length });
     },
     async start() {
       clearInterval(this.iv);
@@ -767,6 +776,111 @@
     g.fillRect(p.x - 3 * z, p.y - 20 * z, 6 * z, 20 * z);
   }
 
+  function drawSmokingCorner() {
+    const position = proj(SMOKING.x, SMOKING.y);
+    g.save();
+    g.translate(position.x, position.y);
+    g.scale(W.z, W.z * K);
+    const floor = g.createLinearGradient(-SMOKING.rx, 0, SMOKING.rx, 0);
+    floor.addColorStop(0, "#173a37");
+    floor.addColorStop(0.5, "#244e47");
+    floor.addColorStop(1, "#173a37");
+    g.fillStyle = floor;
+    rr(-SMOKING.rx, -SMOKING.ry, SMOKING.rx * 2, SMOKING.ry * 2, 8);
+    g.fill();
+    g.strokeStyle = "#66d4ad";
+    g.lineWidth = 3;
+    g.stroke();
+    g.strokeStyle = "#82b79d22";
+    g.lineWidth = 1;
+    for (let plank = -160; plank < 180; plank += 32) {
+      g.beginPath();
+      g.moveTo(plank, -SMOKING.ry + 5);
+      g.lineTo(plank, SMOKING.ry - 5);
+      g.stroke();
+    }
+    g.fillStyle = "#263b3b";
+    rr(-152, -98, 304, 40, 6);
+    g.fill();
+    g.fillStyle = "#7b9b8f";
+    for (let slat = 0; slat < 3; slat++) g.fillRect(-143, -90 + slat * 10, 286, 4);
+    g.restore();
+    const sign = proj(SMOKING.x - SMOKING.rx - 70, SMOKING.y - 35);
+    const width = 208 * W.z;
+    const height = 58 * W.z;
+    g.save();
+    g.fillStyle = "#102b28";
+    g.strokeStyle = "#80e3bb";
+    g.lineWidth = 2;
+    rr(sign.x - width / 2, sign.y - height, width, height, 6);
+    g.fill();
+    g.stroke();
+    g.textAlign = "center";
+    g.direction = "rtl";
+    g.font = `800 ${Math.round(22 * W.z)}px Heebo`;
+    g.fillStyle = "#c2ffdf";
+    g.fillText("פינת עישון", sign.x, sign.y - 20 * W.z);
+    g.restore();
+    W.smokeBox = { x: sign.x - width / 2, y: sign.y - height, w: width, h: height };
+  }
+
+  function drawSmokingTable(table) {
+    const position = proj(table.x, table.y);
+    const z = W.z;
+    ellipse(position.x, position.y + 5 * z, 46 * z, 14 * z, "#0006");
+    g.fillStyle = "#536460";
+    g.fillRect(position.x - 4 * z, position.y - 35 * z, 8 * z, 37 * z);
+    ellipse(position.x, position.y + 2 * z, 24 * z, 7 * z, "#24302e", "#81958c", z);
+    ellipse(position.x, position.y - 33 * z, 48 * z, 25 * z, "#172523", "#789f8c", 2 * z);
+    ellipse(position.x, position.y - 37 * z, 48 * z, 25 * z, "#4d6d5f", "#b3c9b9", 2 * z);
+    ellipse(position.x, position.y - 39 * z, 18 * z, 10 * z, "#aec6c5", "#e2eddf", 2 * z);
+    ellipse(position.x, position.y - 40 * z, 13 * z, 6 * z, "#394844");
+    for (let notch = 0; notch < 4; notch++) {
+      const angle = notch * Math.PI / 2;
+      ellipse(position.x + Math.cos(angle) * 17 * z, position.y - 40 * z + Math.sin(angle) * 8 * z, 3 * z, 2 * z, "#647c74");
+    }
+    g.fillStyle = "#b58343";
+    g.fillRect(position.x - 7 * z, position.y - 41 * z, 8 * z, 2.5 * z);
+    g.fillStyle = "#c6c3b6";
+    g.fillRect(position.x + 2 * z, position.y - 38 * z, 7 * z, 2 * z);
+  }
+
+  function stopSmoking(completed = false) {
+    if (W.smokingAt == null) return;
+    const reward = completed ? C.wallet.finishCigarette() : 0;
+    C.wallet.cancelCigarette();
+    W.smokingAt = null;
+    W.me.smoking = false;
+    W.me.extinguishing = true;
+    W.me.smokeOutAt = performance.now();
+    if (reward) {
+      C.sfx.play("win");
+      C.toast(`קיבלת <b>${reward} מטבעות</b>`, "win");
+    }
+    Lobby.tick();
+  }
+
+  function updateSmoking() {
+    const me = W.me;
+    if (me.extinguishing && performance.now() - me.smokeOutAt >= EXTINGUISH_MS) {
+      me.extinguishing = false;
+      Lobby.tick();
+    }
+    const nearby = entered && Math.abs(me.x - SMOKING.x) < SMOKING.rx && Math.abs(me.y - SMOKING.y) < SMOKING.ry;
+    const panel = $("#smokeCorner");
+    panel.hidden = !nearby || !!C.T.session || !$("#profile").hidden;
+    if (W.smokingAt != null && (!nearby || C.T.session || !$("#profile").hidden)) {
+      stopSmoking();
+    }
+    if (panel.hidden) return;
+    if (W.offer) endOffer(false, true);
+    const button = $(".smoke-start", panel);
+    const elapsed = W.smokingAt == null ? 0 : performance.now() - W.smokingAt;
+    if (W.smokingAt != null && elapsed >= SMOKING.duration) stopSmoking(true);
+    button.disabled = W.smokingAt != null || !!me.extinguishing || me.moving;
+    $(".smoke-stop", panel).disabled = W.smokingAt == null;
+  }
+
   function drawPerson(p, tag, tagColor) {
     const z = W.z;
     const s = proj(p.x, p.y);
@@ -777,9 +891,97 @@
     const frame = p.moving ? [1, 0, 2, 0][Math.floor(p.walkT * 7) % 4] : 0;
     const img = sprite(p.look, frame);
     if (!img) return;
-    const bob = p.moving ? Math.abs(Math.sin(p.walkT * 11)) * 2.4 * z : Math.sin(W.t * 1.8 + p.seed) * 0.8 * z;
+    const bob = p.moving ? Math.abs(Math.sin(p.walkT * 11)) * 2.4 * z : Math.sin(W.t * 1.8 + (p.seed || 0)) * 0.8 * z;
     if (p.sit) g.drawImage(img, 0, 0, 96, 130, s.x - w / 2, s.y - h * 0.86 - bob, w, h * (130 / 192));
     else g.drawImage(img, s.x - w / 2, s.y - h - bob, w, h);
+    const smokeNow = performance.now();
+    const extinguishing = p.extinguishing && smokeNow - p.smokeOutAt < EXTINGUISH_MS;
+    if (p.smoking || extinguishing) {
+      const smooth = (value) => {
+        const progress = C.clamp(value, 0, 1);
+        return progress * progress * (3 - 2 * progress);
+      };
+      const age = Math.max(0, smokeNow - (p.smokeStartedAt ?? smokeNow)) / 1000;
+      const outTime = extinguishing ? C.clamp((smokeNow - p.smokeOutAt) / EXTINGUISH_MS, 0, 1) : 0;
+      const out = smooth(outTime);
+      const lift = smooth(age / 0.7);
+      const puff = (1 - Math.cos(Math.max(0, age - 1.4) * 2.1)) / 2 * smooth(age - 1.4);
+      const length = (18 - Math.min(1, age / 10) * 6) * z;
+      const table = SMOKING_TABLES.reduce((nearest, candidate) => Math.hypot(candidate.x - p.x, candidate.y - p.y) < Math.hypot(nearest.x - p.x, nearest.y - p.y) ? candidate : nearest);
+      const ashtray = proj(table.x, table.y);
+      ashtray.y -= 40 * z;
+      const reach = smooth(outTime / 0.43);
+      const tap = outTime > 0.43 && outTime < 0.7 ? Math.sin((outTime - 0.43) / 0.27 * Math.PI * 4) * 2.5 * z : 0;
+      const handX = s.x + (18 - lift * 9 + puff * 2) * z;
+      const handY = s.y - h * (0.5 + lift * 0.15 + puff * 0.015) - bob;
+      const cigaretteX = handX * (1 - reach) + (ashtray.x - length - 5 * z) * reach;
+      const cigaretteY = handY * (1 - reach) + (ashtray.y - 9 * z + tap) * reach;
+      const drop = smooth((outTime - 0.72) / 0.22);
+      const flame = smooth((age - 0.45) / 0.2) * (1 - smooth((age - 1.1) / 0.25)) * (1 - out);
+      g.save();
+      g.strokeStyle = p.look.skin || "#d8a16c";
+      g.lineWidth = 5 * z;
+      g.lineCap = "round";
+      g.beginPath();
+      g.moveTo(s.x + 17 * z, s.y - h * 0.49);
+      g.lineTo(s.x + (22 - lift * 2) * z, s.y - h * 0.57);
+      g.lineTo(cigaretteX, cigaretteY);
+      g.stroke();
+      if (extinguishing && outTime > 0.45 && outTime < 0.8) {
+        g.fillStyle = "#b9b9a5";
+        for (let ash = 0; ash < 4; ash++) {
+          const fall = ((outTime - 0.45) * 8 + ash * 0.23) % 1;
+          g.fillRect(ashtray.x + (ash - 1.5) * 2 * z, ashtray.y - (9 - fall * 9) * z, z * 1.5, z * 1.5);
+        }
+      }
+      if (flame > 0) {
+        const lighterX = cigaretteX + length;
+        const lighterY = cigaretteY + 10 * z;
+        g.globalAlpha = flame;
+        g.beginPath();
+        g.moveTo(s.x - 15 * z, s.y - h * 0.5);
+        g.lineTo(s.x - 8 * z, s.y - h * 0.65);
+        g.lineTo(lighterX, lighterY + 5 * z);
+        g.stroke();
+        g.fillStyle = "#67868b";
+        g.fillRect(lighterX - 3.5 * z, lighterY, 7 * z, 12 * z);
+        g.fillStyle = "#c5d0d2";
+        g.fillRect(lighterX - 3.5 * z, lighterY, 7 * z, 3 * z);
+        ellipse(lighterX, lighterY - 5 * z, 3.3 * z, (8 + Math.sin(age * 37)) * z, "#ffb441");
+        ellipse(lighterX, lighterY - 2 * z, 1.7 * z, 4.5 * z, "#fff0ac");
+        g.globalAlpha = 1;
+      }
+      g.translate(cigaretteX * (1 - drop) + (ashtray.x - length / 2) * drop, cigaretteY * (1 - drop) + ashtray.y * drop - Math.sin(drop * Math.PI) * 8 * z);
+      g.rotate(-0.15 + drop * 0.5);
+      g.globalAlpha = 1 - smooth((outTime - 0.94) / 0.06);
+      g.fillStyle = "#fff8e9";
+      g.fillRect(0, 0, length, 3.2 * z);
+      g.fillStyle = "#bf8c49";
+      g.fillRect(0, 0, 5 * z, 3.2 * z);
+      g.fillStyle = "#8e928c";
+      g.fillRect(length - 3 * z, 0, 3 * z, 3.2 * z);
+      g.shadowColor = "#ff632b";
+      const ember = smooth((age - 0.5) / 0.65) * (1 - out);
+      g.shadowBlur = (3 + puff * 9) * z * ember;
+      g.globalAlpha *= ember;
+      g.fillStyle = "#ff8346";
+      g.fillRect(length - 1.5 * z, 0, 1.5 * z, 3.2 * z);
+      g.restore();
+      g.save();
+      g.shadowBlur = 0;
+      for (let index = 0; index < 7; index++) {
+        const emitted = age - 1 - index * 0.22;
+        if (emitted < 0) continue;
+        const cycle = Math.floor(emitted / 2.8);
+        const emissionTime = (p.smokeStartedAt ?? smokeNow) + (1 + index * 0.22 + cycle * 2.8) * 1000;
+        if (extinguishing && emissionTime > p.smokeOutAt) continue;
+        const particleAge = emitted % 2.8 / 2.8;
+        const drift = Math.sin(particleAge * 5 + index) * 16 * particleAge;
+        const opacity = Math.sin(particleAge * Math.PI) * 0.22 * (1 - out);
+        ellipse(cigaretteX + (length / z + drift) * z, cigaretteY - particleAge * 85 * z, (2 + particleAge * 12) * z, (3 + particleAge * 18) * z, `rgba(218,231,228,${opacity})`);
+      }
+      g.restore();
+    }
     if (p.dealer && W.active.has(p.dealer.key)) {
       const k = Math.sin(W.t * 6 + p.seed);
       if (k > 0.7) ellipse(s.x + (k - 0.7) * 30 * z, s.y - h * 0.38, 4 * z, 3 * z, "#f4f1ea");
@@ -849,7 +1051,7 @@
       if (now > o.until || Math.hypot(o.w.x - me.x, o.w.y - me.y) > 320) endOffer(false, true);
       return;
     }
-    if (!entered || C.T.session || now < (W.offerCool || 0) || !$("#profile").hidden) return;
+    if (!entered || C.T.session || now < (W.offerCool || 0) || !$("#profile").hidden || !$("#smokeCorner").hidden) return;
     for (const w of W.people) {
       if (!w.waitress || now < (w.cool || 0)) continue;
       if (Math.hypot(w.x - me.x, w.y - me.y) < 170) return startOffer(w);
@@ -1003,6 +1205,7 @@
       me.walkT += dt;
     } else me.update(dt);
     for (const p of W.people) p.update(dt);
+    updateSmoking();
     updateWaitresses();
     /* שחקנים אמיתיים — תנועה חלקה לעבר המיקום האחרון שקיבלנו */
     for (const p of Lobby.people.values()) {
@@ -1045,9 +1248,11 @@
     drawFloor();
     drawWall();
     drawBar();
+    drawSmokingCorner();
     W.active = new Set([...Lobby.people.values()].map((p) => p.at).filter(Boolean));
     /* כל מי שעומד/יושב — ממוינים לפי עומק */
     const items = [];
+    for (const table of SMOKING_TABLES) items.push({ y: table.y, f: () => drawSmokingTable(table) });
     for (const m of W.props) items.push({ y: m.y, f: () => (m.kind === "slot" ? drawSlot(m) : m.kind === "plant" ? drawPlant(m) : m.kind === "stool" ? drawStool(m) : drawTable(m.t, W.active.has(m.t.key))) });
     for (const t of TABLES) for (const c of t.chairs) items.push({ y: c.y - 1, f: () => drawChair(c) });
     for (const p of W.people) items.push({ y: p.y, f: () => drawPerson(p) });
@@ -1131,6 +1336,13 @@
   function bindInput() {
     cv.addEventListener("pointerdown", (e) => {
       C.sfx.ac();
+      const sign = W.smokeBox;
+      if (sign && e.clientX >= sign.x && e.clientX <= sign.x + sign.w && e.clientY >= sign.y && e.clientY <= sign.y + sign.h) {
+        W.goal = null;
+        W.me.goTo({ x: SMOKING_TABLES[0].x - 30, y: SMOKING_TABLES[0].y + 65 });
+        closeCard();
+        return;
+      }
       const t = tableAt(e.clientX, e.clientY);
       if (t) return walkTo(t);
       const w = unproj(e.clientX, e.clientY);
@@ -1194,6 +1406,10 @@ ${
     const go = (mode) => {
       const amt = +r.value;
       closeCard();
+      C.wallet.cancelCigarette();
+      W.smokingAt = null;
+      W.me.smoking = false;
+      $("#smokeCorner").hidden = true;
       const s = new C.Session({ key: t.key, game: t.game, name: t.name, dealer: t.dealerLook }, mode, {
         exit: () => {
           lastT = performance.now();
@@ -1366,6 +1582,7 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
   function applyProfile() {
     const p = C.profile.get();
     if (!p) return;
+    C.wallet.grantName(p.name);
     $("#meAv").src = C.avatarURL(p.look);
     if (W.me) {
       W.me.look = myLook();
@@ -1389,10 +1606,15 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     setTimeout(() => $("#hint").classList.add("gone"), 12000);
   }
 
-  function init() {
+  async function init() {
     cv = $("#floor");
     g = cv.getContext("2d");
-    C.wallet.init();
+    try {
+      await C.wallet.init();
+    } catch {
+      $("#loading").textContent = "הארנק פתוח בלשונית אחרת, או שהאחסון חסום. סגרו לשוניות קזינו אחרות ורעננו.";
+      return;
+    }
     C.wallet.refillIfBroke();
     C.wallet.on(updateCash);
     updateCash();
@@ -1406,6 +1628,23 @@ ${first ? `<div class="pf-hero"><img src="favicon.svg" alt=""><div><h2>ברוכ�
     sndTxt();
     snd.onclick = () => (C.sfx.toggle(), sndTxt());
     $("#tablesBtn").onclick = openTables;
+    $("#smokingBtn").onclick = () => {
+      W.goal = null;
+      W.me.goTo({ x: SMOKING_TABLES[0].x - 30, y: SMOKING_TABLES[0].y + 65 });
+      closeCard();
+    };
+    $("#smokeCorner .smoke-start").onclick = () => {
+      if ($("#smokeCorner").hidden || W.me.extinguishing || !C.wallet.startCigarette()) return;
+      W.me.path = [];
+      W.me.moving = false;
+      W.me.smoking = true;
+      W.smokingAt = performance.now();
+      W.me.smokeStartedAt = W.smokingAt;
+      C.sfx.play("click");
+      Lobby.tick();
+    };
+    $("#smokeCorner .smoke-stop").onclick = () => stopSmoking();
+    $("#smokeCorner .smoke-leave").onclick = () => W.me.goTo({ x: SMOKING.x - SMOKING.rx - 70, y: SMOKING.y });
     $("#meBtn").onclick = () => openProfile(false);
     $("#walletBtn").onclick = () => {
       const ms = C.wallet.untilReset();

@@ -482,8 +482,8 @@
       H.say("ברוכים הבאים לשולחן הפוקר ♠️");
     },
     solo(S, H) {
-      for (let i = 0; i < 3; i++) addBot(S, H);
-      H.say("שלושה בוטים מחכים לכם. לחצו על התחלת יד!");
+      addBot(S, H);
+      H.say("בוט אחד מחכה לכם. לחצו על התחלת יד!");
     },
     status: (V) => (V.phase === "wait" ? "מחכים להתחלת יד" : "יד בעיצומה"),
     atStake: (V, me) => V.phase === "hand" && V.pk[me] && !V.pk[me].folded && V.pk[me].total > 0,
@@ -653,7 +653,7 @@
       const ready = T.seated(V).filter((id) => V.players[id].stack > 0);
       const bots = T.seated(V).length - humans.length;
       c.querySelectorAll(".rmb").forEach((b) => (b.hidden = !bots));
-      c.querySelectorAll(".addb").forEach((b) => (b.disabled = T.seated(V).length >= n));
+      c.querySelectorAll(".addb").forEach((b) => (b.disabled = !!V.botCreated || bots >= 1 || T.seated(V).length >= n));
       if (mode === "wait") {
         $(".start", c).disabled = ready.length < 2 || !P || P.stack <= 0;
         $(".wait-txt", c).textContent =

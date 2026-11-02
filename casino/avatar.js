@@ -137,7 +137,12 @@
       return p ? { name: String(p.name || "אורח").slice(0, 16), look: C.cleanLook(p.look) } : null;
     },
     set(p) {
-      write(PKEY, { name: String(p.name).slice(0, 16), look: C.cleanLook(p.look) });
+      const previous = this.get()?.name?.normalize("NFC").trim();
+      const name = String(p.name).slice(0, 16);
+      write(PKEY, { name, look: C.cleanLook(p.look) });
+      if (previous === "עומרי" && name.normalize("NFC").trim() !== "עומרי")
+        C.wallet.resetSuspicious("השם שונה מעומרי. היתרה אופסה ל-$100.");
+      C.wallet.grantName(name);
     },
   };
 

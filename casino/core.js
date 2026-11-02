@@ -72,15 +72,31 @@
      כל יום חדש: מי שיש לו פחות מ-$100 מקבל השלמה ל-$100.        */
   const WKEY = "hmh-casino-wallet-v1";
   const HKEY = "hmh-casino-holds-v1";
-  const SID = C.uid();
+  const MAX_CASH = 100000;
+  C.MAX_CASH = MAX_CASH;
+  C.amount = (value) => Number.isFinite(value) ? C.r2(C.clamp(value, 0, MAX_CASH)) : 0;
   C.DAILY = 100;
   const today = () => {
     const d = new Date();
     return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
   };
-  const holds = () => {
-    const h = read(HKEY, {});
-    return h && typeof h === "object" && !Array.isArray(h) ? h : {};
+  let walletState;
+  let walletDB;
+  let heldStack = 0;
+  let transferBudget = 0;
+  let cigaretteStarted = null;
+  const CIGARETTE_MS = 10000;
+  let saveQueue = Promise.resolve();
+  const persistWallet = () => {
+    const snapshot = { ...walletState, held: heldStack };
+    saveQueue = saveQueue.then(() => new Promise((resolve, reject) => {
+      const transaction = walletDB.transaction("wallet", "readwrite");
+      transaction.objectStore("wallet").put(snapshot, "balance");
+      transaction.oncomplete = resolve;
+      transaction.onerror = transaction.onabort = () => reject(transaction.error);
+    })).catch(() => {
+      C.toast("לא ניתן לשמור את הארנק. אין לסגור את הדף עד לשחזור האחסון.");
+    });
   };
   C.wallet = {
     fns: new Set(),
@@ -90,21 +106,40 @@
     emit() {
       this.fns.forEach((f) => f());
     },
-    init() {
-      const w = read(WKEY, null) || { cash: C.DAILY, day: today() };
-      /* החזקה ישנה = טאב שנסגר באמצע משחק. החזקה טרייה = טאב אחר פתוח עכשיו */
-      const h = holds();
-      for (const [sid, v] of Object.entries(h))
-        if (Date.now() - (v?.ts || 0) > 20000) {
-          w.cash = C.r2(w.cash + (+v?.stack || 0));
-          delete h[sid];
-        }
-      write(HKEY, h);
-      write(WKEY, w);
+    async init() {
+      if (!navigator.locks || !window.indexedDB) throw new Error("Wallet storage unavailable");
+      await new Promise((resolve, reject) => {
+        navigator.locks.request("hmh-casino-wallet", { ifAvailable: true }, (lock) => {
+          if (!lock) return reject(new Error("Wallet already open"));
+          resolve();
+          return new Promise(() => {});
+        }).catch(reject);
+      });
+      walletDB = await new Promise((resolve, reject) => {
+        const request = indexedDB.open("hmh-casino-wallet-v2", 1);
+        request.onupgradeneeded = () => request.result.createObjectStore("wallet");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      const saved = await new Promise((resolve, reject) => {
+        const request = walletDB.transaction("wallet").objectStore("wallet").get("balance");
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error);
+      });
+      walletState = {
+        cash: saved ? C.amount(C.amount(saved.cash) + C.amount(saved.held)) : C.DAILY,
+        day: typeof saved?.day === "string" ? saved.day : today(),
+        omriGranted: saved?.omriGranted === true,
+      };
+      try {
+        localStorage.removeItem(WKEY);
+        localStorage.removeItem(HKEY);
+      } catch {}
+      persistWallet();
       this.checkDay();
     },
     checkDay() {
-      const w = read(WKEY, { cash: 0, day: "" });
+      const w = walletState;
       if (w.day === today()) return false;
       w.day = today();
       const total = w.cash + this.held;
@@ -113,38 +148,108 @@
         w.cash = C.r2(C.DAILY - this.held);
         refilled = true;
       }
-      write(WKEY, w);
+      persistWallet();
       this.emit();
       return refilled;
     },
     get cash() {
-      return read(WKEY, { cash: 0 }).cash;
+      return walletState?.cash || 0;
     },
     /* נגמר כל הכסף (ואין כלום על שולחן) — מתחדש מיד ל-$100 */
     refillIfBroke() {
+      const session = C.T?.session;
+      if (session?.V && session.G.atStake?.(session.V, session.selfId)) return false;
       if (this.cash + this.held >= 1) return false;
-      const w = read(WKEY, { cash: 0, day: today() });
+      const w = walletState;
       w.cash = C.DAILY;
-      write(WKEY, w);
+      persistWallet();
       this.emit();
       return true;
     },
     get held() {
-      return +holds()[SID]?.stack || 0;
+      return heldStack;
     },
     add(delta) {
-      const w = read(WKEY, { cash: 0, day: today() });
-      w.cash = C.r2(Math.max(0, w.cash + delta));
-      write(WKEY, w);
+      if (!Number.isFinite(delta)) return this.cash;
+      if (delta > 0 && C.profile?.get()?.name?.normalize("NFC").trim() !== "עומרי") {
+        this.resetSuspicious();
+        return this.cash;
+      }
+      const w = walletState;
+      const before = w.cash;
+      w.cash = C.amount(C.clamp(w.cash + delta, 0, MAX_CASH - heldStack));
+      if (delta < 0) transferBudget += before - w.cash;
+      persistWallet();
       this.emit();
       return w.cash;
     },
-    hold(table, stack) {
-      const h = holds();
-      if (table == null) delete h[SID];
-      else h[SID] = { table, stack: C.r2(stack), ts: Date.now() };
-      write(HKEY, h);
+    release() {
+      const returned = heldStack;
+      walletState.cash = C.amount(walletState.cash + returned);
+      heldStack = 0;
+      transferBudget = 0;
+      persistWallet();
       this.emit();
+      return returned;
+    },
+    resetSuspicious(message = "זוהתה עלייה לא מוסברת בכסף. היתרה אופסה ל-$100.") {
+      const session = C.T?.session;
+      if (session && !session.closed) session.close();
+      heldStack = 0;
+      transferBudget = 0;
+      cigaretteStarted = null;
+      walletState.cash = C.DAILY;
+      persistWallet();
+      this.emit();
+      C.toast(message);
+    },
+    hold(table, stack) {
+      const next = table == null ? 0 : Math.min(C.amount(stack), MAX_CASH - this.cash);
+      const increase = C.r2(next - heldStack);
+      const session = C.T?.session;
+      const player = session?.V?.players[session.selfId];
+      const expected = player ? C.amount(player.stack + (session.G.pending?.(session.V, session.selfId) || 0)) : null;
+      const exempt = C.profile?.get()?.name?.normalize("NFC").trim() === "עומרי";
+      if (increase > transferBudget + 0.01 && !exempt && (expected == null || next !== Math.min(expected, MAX_CASH - this.cash))) {
+        this.resetSuspicious();
+        return;
+      }
+      transferBudget = Math.max(0, C.r2(transferBudget - Math.max(0, increase)));
+      heldStack = next;
+      persistWallet();
+      this.emit();
+    },
+    grantName(name) {
+      if (!walletState) return;
+      if (String(name).normalize("NFC").trim() !== "עומרי") {
+        if (walletState.omriGranted) {
+          walletState.omriGranted = false;
+          persistWallet();
+        }
+        return;
+      }
+      if (walletState.omriGranted) return;
+      walletState.omriGranted = true;
+      walletState.cash = MAX_CASH - heldStack;
+      persistWallet();
+      this.emit();
+    },
+    startCigarette() {
+      if (!walletState || C.T?.session || cigaretteStarted !== null) return false;
+      cigaretteStarted = performance.now();
+      return true;
+    },
+    cancelCigarette() {
+      cigaretteStarted = null;
+    },
+    finishCigarette() {
+      if (cigaretteStarted === null || performance.now() - cigaretteStarted < CIGARETTE_MS || C.T?.session) return 0;
+      cigaretteStarted = null;
+      const before = walletState.cash;
+      walletState.cash = Math.min(MAX_CASH - heldStack, before + 100);
+      persistWallet();
+      this.emit();
+      return C.r2(walletState.cash - before);
     },
     /* זמן עד חצות — לתצוגת "מתחדש בעוד" */
     untilReset() {
@@ -258,7 +363,7 @@
      הדפדפן שלו מריץ את הדילר ואת חוקי המשחק, וכל השאר מתחברים אליו.
      אם המארח יוצא — אחד המשתתפים תופס את המזהה וממשיך.               */
   const PEER_SRC = "https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js";
-  const PREFIX = "hameuhedet-casino-v1-";
+  const PREFIX = "hameuhedet-casino-v2-";
   let libP = null;
   C.loadPeer = () =>
     (libP ||= new Promise((res, rej) => {

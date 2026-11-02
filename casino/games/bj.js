@@ -58,8 +58,15 @@
     setTimeout(() => box.remove(), 2200);
   }
 
+  function startWhenReady(S, H) {
+    if (S.solo || S.phase !== "bet") return;
+    const players = T.seated(S).filter((id) => !S.players[id].bot);
+    if (players.length && players.every((id) => S.bets[id] > 0 && S.ready[id])) deal(S, H);
+  }
+
   function deal(S, H) {
     S.phase = "deal";
+    S.ready = {};
     S.round++;
     S.results = null;
     S.says = {};
@@ -252,6 +259,7 @@
     H.after(2600, () => {
       S.phase = "bet";
       S.bets = {};
+      S.ready = {};
       S.ppRes = {};
       S.hands = {};
       S.order = [];
@@ -293,7 +301,7 @@
     seats: 5,
     blurb: "מגיעים ל-21 בלי לעבור, ומנצחים את הדילר. בלאק ג'ק משלם 3:2.",
     rules: `<ul>
-<li>בוחרים סכום עם הצ'יפים ולוחצים <b>חלוקה</b>. כל מי שהימר נכנס לסיבוב.</li>
+<li>בוחרים סכום עם הצ'יפים. במשחק משותף כל שחקן לוחץ <b>מוכן</b> — החלוקה מתחילה אוטומטית כשכולם מוכנים. שינוי הימור מבטל את המוכנות שלכם. במשחק לבד לוחצים <b>חלוקה</b>.</li>
 <li>המטרה: להגיע קרוב ל-21 יותר מהדילר, בלי לעבור. תמונה = 10, אס = 1 או 11.</li>
 <li><b>קלף</b> — עוד קלף. <b>עוצר</b> — מסיימים. <b>הכפלה</b> — מכפילים את ההימור ומקבלים קלף אחד בלבד. <b>פיצול</b> — זוג זהה נחלק לשתי ידיים.</li>
 <li>אס + 10 בשני הקלפים הראשונים = בלאק ג'ק, משלם 3 ל-2.</li>
@@ -303,6 +311,7 @@
       S.phase = "bet";
       S.shoe = C.deck(6);
       S.bets = {};
+      S.ready = {};
       S.last = {};
       S.pp = {};
       S.lastPP = {};
@@ -321,7 +330,11 @@
     onLeave(S, pid, H) {
       delete S.bets[pid];
       delete S.pp[pid];
-      if (S.phase === "bet") return true;
+      delete S.ready[pid];
+      if (S.phase === "bet") {
+        startWhenReady(S, H);
+        return true;
+      }
       S.hands[pid]?.forEach((h) => (h.done = true));
       if (S.cur?.pid === pid) next(S, H);
       return false;
@@ -349,6 +362,8 @@
           p.stack = C.r2(p.stack + old - amt);
           if (amt > 0) S.bets[pid] = amt;
           else delete S.bets[pid];
+          delete S.ready[pid];
+          say(S, pid, "");
         } else if (a.a === "pp") {
           const want = Math.floor(+a.amt);
           if (!(want >= 0)) return;
@@ -357,7 +372,13 @@
           p.stack = C.r2(p.stack + old - amt);
           if (amt > 0) S.pp[pid] = amt;
           else delete S.pp[pid];
-        } else if (a.a === "deal" && S.bets[pid]) deal(S, H);
+          delete S.ready[pid];
+          say(S, pid, "");
+        } else if (a.a === "ready" && !S.solo && S.bets[pid]) {
+          S.ready[pid] = a.ready === true;
+          say(S, pid, S.ready[pid] ? "מוכן ✔" : "עדיין בוחר הימור");
+          startWhenReady(S, H);
+        } else if (a.a === "deal" && S.solo && S.bets[pid]) deal(S, H);
         return;
       }
       if (S.phase !== "play" || S.cur?.pid !== pid) return;
@@ -433,7 +454,10 @@
         const v = +b.dataset.pp;
         ctx.send({ a: "pp", amt: v ? Math.min(cur + v, Math.floor((V?.players[ctx.me]?.stack || 0) + cur)) : 0 });
       };
-      $(".go", c).onclick = () => ctx.send({ a: "deal" });
+      $(".go", c).onclick = () => {
+        const V = ctx.sess.V;
+        ctx.send(V.solo ? { a: "deal" } : { a: "ready", ready: !V.ready?.[ctx.me] });
+      };
       $(".hit", c).onclick = () => ctx.send({ a: "hit" });
       $(".stand", c).onclick = () => ctx.send({ a: "stand" });
       $(".dbl", c).onclick = () => ctx.send({ a: "double" });
@@ -555,12 +579,17 @@
         $(".mypp", c).textContent = C.money(mpp);
         $(".ppclr", c).hidden = !mpp;
         $(".go", c).disabled = !mb;
+        const ready = !!V.ready?.[me];
+        $(".go", c).textContent = V.solo ? "🃏 חלוקה!" : ready ? "ביטול מוכנות" : "✔ מוכן";
+        $(".go", c).setAttribute("aria-pressed", String(!V.solo && ready));
         const last = V.last?.[me] || 0;
         $(".rebet", c).hidden = !last || mb === last;
         $(".clr", c).hidden = !mb;
         const others = Object.keys(V.bets).filter((id) => id !== me).length;
+        const players = T.seated(V).filter((id) => !V.players[id].bot);
+        const readyCount = players.filter((id) => V.ready?.[id] && V.bets[id] > 0).length;
         $(".ctl-info", c).innerHTML = `ההימור שלך: <b class="mybet">${C.money(mb)}</b>${
-          others ? ` <small>· עוד ${others} שחקנים הימרו</small>` : ""
+          !V.solo ? ` <small>· ${readyCount}/${players.length} מוכנים${ready ? " · מחכים לשאר השחקנים" : ""}</small>` : others ? ` <small>· עוד ${others} שחקנים הימרו</small>` : ""
         }${mpp && !mb ? ` <small class="warn">פרפקט פייר משחק רק יחד עם הימור ראשי</small>` : ""}${
           P && P.stack < 1 && !mb ? ` <small class="warn">אין כסף על השולחן — לחצו + למעלה</small>` : ""
         }`;
